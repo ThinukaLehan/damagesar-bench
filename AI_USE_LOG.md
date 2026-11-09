@@ -2,7 +2,7 @@
 
 Every use of a generative-AI tool, what it produced, and how it was checked. AI never replaces reading original sources, design decisions, interpretation of results, or authorship of the report.
 
-**Permission:** on 9 Nov 2026 the supervisor (Dr. Achala Aponsu) confirmed that using generative AI in this project is allowed, and encouraged, given the time available. AI-assisted commits carry a `Co-Authored-By: Claude` line, and every use is logged below. The formal declaration follows the module's required format.
+**Permission:** on 9 Nov 2026 the supervisor (Dr. Achala Aponsu) confirmed that using generative AI in this project is allowed, and encouraged, given the time available. Every use is logged below and disclosed in the README. On 9 Nov 2026, on the supervisor's advice, the author is listed as the sole author and AI is acknowledged as a tool (as IEEE asks for AI-generated content); the `Co-Authored-By: Claude` lines were removed from the first four commit messages and are no longer added. The code in those commits is unchanged. The formal declaration follows the module's required format.
 
 | Date | Tool | Purpose | Output | How verified |
 |---|---|---|---|---|

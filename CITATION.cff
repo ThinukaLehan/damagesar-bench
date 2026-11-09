@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "DamageSAR-Bench: a reproducible, leakage-audited toolkit for building-level damage classification from SAR on unseen disasters"
+type: software
+authors:
+  - family-names: Lehan
+    given-names: Thinuka
+version: 0.1.0
+date-released: 2026-11-09
+license: MIT
+keywords:
+  - synthetic aperture radar
+  - building damage
+  - disaster response
+  - benchmark
+  - domain generalisation

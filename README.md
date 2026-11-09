@@ -70,6 +70,14 @@ pytest --cov=damagesar_bench
 
 Every change is logged in [`EXPERIMENT_LOG.md`](EXPERIMENT_LOG.md); AI assistance and how it was verified is logged in [`AI_USE_LOG.md`](AI_USE_LOG.md); design decisions are recorded as ADRs in [`docs/adr/`](docs/adr/).
 
+## AI assistance
+
+Parts of the code, tests and documentation were drafted with Claude (Anthropic), a generative-AI tool, and were reviewed, tested and verified by the author, who is responsible for all content. AI use was approved by the project supervisor. Every use, and how it was checked, is recorded in [`AI_USE_LOG.md`](AI_USE_LOG.md).
+
+## Citation
+
+If you use this toolkit, please cite it using [`CITATION.cff`](CITATION.cff).
+
 ## Data and licences
 
 BRIGHT SAR imagery is CC BY 4.0 (Capella, Umbra). BRIGHT optical imagery and labels are mostly CC BY-NC 4.0, for academic use only. **No BRIGHT data is stored in or redistributed from this repository.** Code: MIT.
