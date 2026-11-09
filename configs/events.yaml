@@ -1,0 +1,23 @@
+# Event roles for DamageSAR-Bench (v11.1, frozen design; see docs/preregistration.md).
+# key       = the part of the BRIGHT filename before the first "-" (e.g. "la_palma-volcano_00000001_post_disaster.tif" -> la_palma)
+# role      = confirmatory | development | secondary
+# units     = instance (BRIGHT instance JSON) | fallback (no instance labels; see Ukraine rule) | none
+# Changing a role after the plan freeze is a deviation and must be reported.
+
+freeze_date: "2027-01-10"   # confirmatory labels are refused before this date
+
+events:
+  haiti:     {name: "Haiti earthquake",        hazard: earthquake, role: confirmatory, units: instance}
+  turkey:    {name: "Türkiye earthquake",      hazard: earthquake, role: confirmatory, units: instance}
+  morocco:   {name: "Morocco earthquake",      hazard: earthquake, role: confirmatory, units: instance}
+  noto:      {name: "Noto earthquake",         hazard: earthquake, role: confirmatory, units: instance}
+  bata:      {name: "Bata explosion",          hazard: explosion,  role: confirmatory, units: instance}
+  ukraine:   {name: "Ukraine conflict",        hazard: conflict,   role: confirmatory, units: fallback}
+  beirut:    {name: "Beirut explosion",        hazard: explosion,  role: development,  units: instance}
+  la_palma:  {name: "La Palma volcano",        hazard: volcano,    role: development,  units: instance}
+  hawaii:    {name: "Hawaii wildfire",         hazard: wildfire,   role: development,  units: instance}
+  congo:     {name: "Congo volcano",           hazard: volcano,    role: development,  units: instance}
+  libya:     {name: "Libya flood",             hazard: flood,      role: development,  units: instance}
+  marshall:  {name: "Marshall wildfire",       hazard: wildfire,   role: secondary,    units: instance}
+  mexico:    {name: "Mexico hurricane",        hazard: storm,      role: secondary,    units: none}
+  myanmar:   {name: "Myanmar cyclone",         hazard: storm,      role: secondary,    units: none}

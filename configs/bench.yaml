@@ -1,0 +1,17 @@
+# Main settings for DamageSAR-Bench. Paths can be overridden on the command line.
+
+data:
+  root: /content/bright          # folder holding post-event/ and target/ (Colab default)
+  sar_dir: post-event
+  label_dir: target
+  sar_suffix: _post_disaster.tif
+  label_suffix: _building_damage.tif
+  label_values: [0, 1, 2, 3]      # 0 background, 1 intact, 2 damaged, 3 destroyed
+
+nodata:
+  sar_value: 0                    # treat 0 as no-data in every event (Türkiye has no no-data tag)
+  tile_exclude_frac: 0.95         # exclude a tile if >= 95% of SAR pixels are no-data
+  building_exclude_frac: 0.50     # drop a building if >= 50% of its footprint is no-data
+
+outputs:
+  dir: outputs

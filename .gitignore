@@ -1,0 +1,35 @@
+# BRIGHT data is CC BY-NC for labels/optical: never commit it
+data/
+outputs/
+*.tif
+*.tiff
+*.zip
+*.npy
+*.parquet
+*.pt
+*.pth
+*.safetensors
+
+# Secrets
+.env
+*.token
+hf_token*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Notebooks / editors
+.ipynb_checkpoints/
+.vscode/
+.idea/
+.DS_Store

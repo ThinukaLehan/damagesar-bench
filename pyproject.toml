@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "damagesar-bench"
+version = "0.1.0"
+description = "A reproducible, leakage-audited toolkit for building-level damage classification from SAR on unseen disasters"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Thinuka Lehan" }]
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "pyyaml>=6.0",
+    "rasterio>=1.3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4", "pytest-cov>=4.1"]
+ml = ["torch>=2.1", "transformers>=4.40", "timm>=0.9", "scikit-learn>=1.3", "scipy>=1.11", "pyarrow>=14"]
+geo = ["shapely>=2.0", "geopandas>=0.14"]
+
+[project.scripts]
+bench = "damagesar_bench.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+damagesar_bench = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
