@@ -59,5 +59,5 @@ def test_cli_validate_fails_on_problems(tmp_path, bright_root):
 
 
 def test_cli_planned_command(capsys):
-    assert main(["run"]) == 2
+    assert main(["new-event"]) == 2
     assert "not implemented yet" in capsys.readouterr().err
