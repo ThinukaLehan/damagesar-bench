@@ -72,7 +72,9 @@ Last updated: 9 Nov 2026
 
 ## 6 · 19 Dec – 10 Jan (towards the freeze)
 
-- [ ] Statistics engine, test-first (t-interval df=5, v11.1 decision table, sign-flip)
+- [x] Statistics engine, test-first: metrics, DeLong, cluster bootstrap, t-interval, v11.1 decision table, sign-flip, Hartung–Knapp, exact MDE, pilot-SD rule, Gate 1 (9 Nov, moved up from Dec)
+- [ ] Agree the Gate 1 random-shift null rule (proposed in `docs/preregistration.md` §6) — **Sup**
+- [ ] Define the C3 pass rule precisely ("better than training-event rate": per event or on average?) — **You/Sup**
 - [ ] Controls
 - [ ] C3 + stress tests + abstain thresholds
 - [ ] New-event dry run (`bench new-event`)

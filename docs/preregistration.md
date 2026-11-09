@@ -37,9 +37,16 @@ Classification of **given building footprints** as damaged-or-destroyed vs intac
   4. Anything else → inconclusive.
 - **Supporting evidence only:** exact sign-flip test (smallest two-sided p = 2/64 with 6 events, 2/32 with 5); Hartung–Knapp random effects across the secondary set.
 - Within one event: tile-cluster bootstrap (paired DeLong as a side check).
+- **Implementation** (`src/damagesar_bench/stats/`, tested against hand-worked values, printed t tables, a brute-force DeLong, scikit-learn and statsmodels):
+  - Verdicts compare values after rounding to 10 decimals, so floating-point noise cannot change a row (e.g. 0.1 − 0.08 counts as exactly +0.02). Equality cases: estimate = +0.02 → row 1; lower = 0 → not "> 0"; upper = +0.02 → not "< +0.02" (inconclusive).
+  - AUROC with mid-ranks (ties count ½); average precision as in scikit-learn; DeLong by the Sun & Xu (2014) fast algorithm.
+  - Tile-cluster bootstrap: 2,000 replicates, percentile interval, tiles resampled with replacement; replicates with one class are skipped and counted; more than 5% skipped → flagged unreliable.
+  - Sign-flip: exact enumeration of all 2ⁿ sign patterns, statistic |sum of gains|.
+  - Hartung–Knapp: DerSimonian–Laird τ², t quantile with k − 1 df, no truncation of the HK scale factor.
+- **Power (pre-registered method):** minimum detectable mean gain for a two-sided one-sample t-test at 5% with 80% power, solved exactly with the noncentral t distribution: **1.43 SD with 6 events, 1.68 SD with 5** (normal approximation 1.14 SD; quick t approximation 1.42 SD). Pilot-SD rule: SD ≤ 0.020 proceed; 0.020 < SD ≤ 0.035 lead with the estimate; SD > 0.035 lead with the secondary estimate.
 
 ## 6. Gates
-- **Gate 1 (18 Dec 2026, C2):** mean ΔAUROC ≥ +0.02 over the 5 development events, better than outline pooling in ≥ 4 of 5, and better than a random-shift null. Shift rule: TBD (fixed before any AUROC is computed).
+- **Gate 1 (18 Dec 2026, C2):** mean ΔAUROC ≥ +0.02 over the 5 development events, better than outline pooling in ≥ 4 of 5, and better than a random-shift null. Shift rule: TBD (fixed before any AUROC is computed). **Proposed null rule (to agree):** run the random-shift control R times (same shift-size distribution, different random directions); projected passes if its mean gain is above the 95th percentile of the R random-shift mean gains (R = 1 reduces to "strictly larger"). A gain of exactly 0 does not count as "better". Implemented in `stats/gates.py`.
 - **C3 (early Jan):** relative prevalence error ≤ 50% on ≥ 4 of 5 development events and better than the training-average baseline. Abstain thresholds: TBD.
 - **Gate 2:** definition TBD with supervisor (proposed: locked run executed once + new-event mode tested, ~25 Jan 2027).
 
