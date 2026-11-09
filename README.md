@@ -15,6 +15,7 @@ Final-year project, 6SENG010C Software Engineering Final Project (2026–27), Th
 | `bench validate` | Checks data: pairing, shape, CRS, geotransform, label values, no-data | ✅ |
 | `bench audit` | Writes `splits.json` (leave-one-event-out folds); leakage checks | ✅ splits · ⏳ leakage |
 | `bench status` | Shows event roles and whether confirmatory labels are locked | ✅ |
+| `bench buildings` | Builds `buildings.parquet` from BRIGHT instance labels (footprints, ground area, no-data rule, labels where unlocked) | ✅ |
 | `bench extract` | Extracts and caches frozen-encoder features | ⏳ Stage 2 |
 | `bench run` | Pooling, probes, recalibration, controls, statistics | ⏳ Stages 2–5 |
 | `bench report` | HTML report from saved results | ⏳ Stage 2 |

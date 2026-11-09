@@ -60,8 +60,12 @@ At least 30% of Beirut buildings cover fewer than 4 tokens even with merged comp
 timing run, because Beirut and Marshall tiles grow by 1.7–2× per side.
 
 ## Evidence round 2 (to do)
-Repeat the Beirut shares with the **instance polygons** (`target_instance_level/*_instance_damage.json`),
-at native resolution and at 0.3 m.
+Run `notebooks/pipeline/p01_building_table.ipynb`: its summary gives the shares under 1/4/9 tokens per event with
+the **instance polygons**, at native resolution and at 0.3 m (`pct_lt_k_tokens_native` / `_target`).
+
+Note from building the loader (9 Nov): EPSG:4326 pixels are not square on the ground (Noto, 37.5°N: a pixel square
+in degrees is ~0.38 m × 0.48 m), and Hawaii's EPSG:3857 pixels are ~0.352 m on the ground, not the stored 0.377 m.
+The resolution table in round 1 used the x side only; the building table uses the true pixel area.
 
 ## Decision
 _To be filled after round 2._

@@ -15,7 +15,8 @@ Classification of **given building footprints** as damaged-or-destroyed vs intac
 - **Ukraine units:** BRIGHT instance labels if the March 2026 release covers Ukraine (check: TBD); otherwise open footprints that pass ≥ 80% agreement **on development events**; otherwise Ukraine moves to secondary and the confirmatory set becomes 5 events, with no replacement. Decision: TBD.
 
 ## 3. Units and labels
-- One building = one instance polygon. Label rule (instance JSON vs raster majority): TBD; mismatch rate reported.
+- One building = one instance polygon from the BRIGHT instance labels (`*_instance_damage.json`). **Label rule:** the damage class is the JSON category (intact / damaged / destroyed, mapped by name). The label-raster majority inside the footprint is computed for unlocked events as an agreement check, and its mismatch rate is reported.
+- Ground area uses the true pixel size: UTM as stored; EPSG:4326 converted per axis at the tile's latitude; EPSG:3857 corrected by cos(latitude).
 - No-data rule: exclude tiles with ≥ 95% SAR no-data; drop buildings with ≥ 50% no-data footprint. SAR value 0 = no-data.
 - Ground resolution and token pooling: ADR 0001, TBD.
 

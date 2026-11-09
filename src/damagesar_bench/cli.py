@@ -1,6 +1,6 @@
 """Command-line interface: ``bench <command>``.
 
-Implemented now: ``validate``, ``audit``, ``status``.
+Implemented now: ``validate``, ``audit``, ``status``, ``buildings``.
 Planned (see docs/preregistration.md and the next-steps guide): ``extract``, ``run``, ``report``,
 ``new-event``.
 """
@@ -68,6 +68,27 @@ def cmd_audit(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_buildings(args: argparse.Namespace) -> int:
+    from damagesar_bench.data.buildings import build_building_table, summarise, write_table
+
+    cfg = load_bench(_find_config("bench.yaml", args.config))
+    events = load_events(_find_config("events.yaml", args.events))
+    only = args.events_only.split(",") if args.events_only else None
+    df, stats = build_building_table(args.labels, events, cfg.nodata, bright_root=args.root,
+                                     today=_today(args.today), target_res_m=args.target_res, only_events=only)
+    out = Path(args.out)
+    table = write_table(df, out / "buildings.parquet")
+    summary = summarise(df) if len(df) else df
+    summary.to_csv(out / "buildings_summary.csv", index=False)
+    print(f"{stats.files} files, {stats.buildings} buildings; excluded for no-data: "
+          f"{stats.buildings_excluded_nodata} buildings ({stats.tiles_excluded_nodata} tiles); "
+          f"area flags: {stats.area_flags}; sample_id mismatches: {stats.sample_id_mismatches}")
+    if len(summary):
+        print(summary.to_string(index=False))
+    print(f"\nTable:   {table}\nSummary: {out / 'buildings_summary.csv'}")
+    return 0
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     from damagesar_bench.data.events import labels_unlocked
 
@@ -100,6 +121,16 @@ def build_parser() -> argparse.ArgumentParser:
     common(a)
     a.add_argument("--out", default="outputs", help="output folder (default: outputs)")
     a.set_defaults(func=cmd_audit)
+
+    b = sub.add_parser("buildings", help="build buildings.parquet from BRIGHT instance labels")
+    common(b)
+    b.add_argument("--labels", required=True, help="instance-label zip or folder (*_instance_damage.json)")
+    b.add_argument("--root", help="BRIGHT root with post-event/ and target/ (for no-data, metres, agreement)")
+    b.add_argument("--config", help="path to bench.yaml (default: configs/bench.yaml)")
+    b.add_argument("--target-res", type=float, default=0.3, help="ground resolution for token counts (m)")
+    b.add_argument("--events-only", help="comma-separated event keys to include (default: all)")
+    b.add_argument("--out", default="outputs", help="output folder (default: outputs)")
+    b.set_defaults(func=cmd_buildings)
 
     s = sub.add_parser("status", help="show event roles and whether confirmatory labels are locked")
     common(s)
