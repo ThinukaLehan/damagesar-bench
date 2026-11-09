@@ -1,7 +1,8 @@
 # Reproduction checklist: earlier results to reproduce in the FYP Google account
 
-Every check is rerun from this repo in the FYP Google account, with outputs saved to
-`MyDrive/damagesar/outputs/<date>_<notebook>/` and the executed notebook copied to `runs/`.
+Every check is rerun from this repo in the FYP Google account. Outputs go to
+`MyDrive/DamageSAR-Bench/04_outputs/runs/<date>_<notebook>/` (see `docs/drive_layout.md`), and the
+executed notebook is copied to `03_notebooks/checks/` in Drive.
 A rerun **passes** if it matches the expected value within the stated tolerance.
 
 | # | Check | Original run | Notebook | Expected result | Tolerance | GPU |

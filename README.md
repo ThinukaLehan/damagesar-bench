@@ -36,8 +36,8 @@ On Colab or Kaggle, do **not** use `pip install -U`; install with `pip install -
 ```bash
 # BRIGHT downloaded and unzipped to /content/bright/{post-event,target}
 bench status
-bench validate --root /content/bright --out /content/drive/MyDrive/damagesar/outputs
-bench audit --out /content/drive/MyDrive/damagesar/outputs
+bench validate --root /content/bright --out /content/drive/MyDrive/DamageSAR-Bench/04_outputs/runs/<date>_validate
+bench audit --out /content/drive/MyDrive/DamageSAR-Bench/01_data/derived
 ```
 
 ## Pre-registration guard
@@ -57,9 +57,10 @@ src/damagesar_bench/
   controls/         shortcut and leakage controls                                 (FR9)
   stats/            metrics, bootstrap, DeLong, sign-flip, t-interval, random effects (FR10)
   report/           HTML report + model card                                      (FR11)
+  drive.py          Google Drive folder layout and per-run output folders
 tests/              pytest suite (runs on CPU in CI)
 notebooks/          thin Colab runners
-docs/               pre-registration, ADRs
+docs/               pre-registration, ADRs, Google Drive layout (drive_layout.md)
 ```
 
 ## Development
