@@ -59,6 +59,7 @@ src/damagesar_bench/
   report/           HTML report + model card                                      (FR11)
   drive.py          Google Drive folder layout and per-run output folders
 tests/              pytest suite (runs on CPU in CI)
+notebooks/checks/   reproduction checks c01–c05 (Colab)
 notebooks/          thin Colab runners
 docs/               pre-registration, ADRs, Google Drive layout (drive_layout.md)
 ```

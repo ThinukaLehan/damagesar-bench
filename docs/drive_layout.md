@@ -20,7 +20,7 @@ DamageSAR-Bench/
 │   └── features/                 cached encoder features, one subfolder per encoder
 ├── 03_notebooks/
 │   ├── pipeline/                 main runners: extract, run, report
-│   ├── checks/                   test and reproduction notebooks (00–04), executed copies
+│   ├── checks/                   check notebooks (c01–c05), executed copies
 │   └── scratch/                  throwaway notebooks, safe to delete
 └── 04_outputs/
     ├── runs/                     one folder per run: <date>_<notebook>[_<commit>]/
