@@ -18,6 +18,7 @@ A rerun **passes** if it matches the expected value within the stated tolerance.
 | 8 | DINOv3 ViT-B/16 forward pass | 3 Nov | c04_dinov3_forward_pass | output shape [1, 201, 768] for a 224 px input | exact | T4 | ready; needs HF_TOKEN + T4 |
 | 9 | BRIGHT UNet zero-shot, 5 development events | 3 Nov | c05_unet_zeroshot_reproduction (to write from the 3 Nov notebook) | mIoU Beirut 31.63, Congo 55.97, Hawaii 31.73, La Palma 32.74, Libya 33.25 | 0.01 | T4 | to do |
 | 10 | UNet inference speed | 3 Nov | c05_unet_zeroshot_reproduction | ≈ 1.2 tiles/s on T4 | ± 20% | T4 | to do |
+| 11 | C2 SAR scene metadata (new, not a rerun) | — | c06_sar_scene_metadata | one row per event with status geometry-ready / match-only / dilated-only; no expected values yet (first run sets them) | — | no | ready; needs GH_TOKEN |
 
 Not rerun: the 31 Oct full audit (offsets, raw-signal AUROC). It touched confirmatory events in ways the
 pre-registration already discloses; repeating it adds no evidence and would look at confirmatory data again.
