@@ -1,7 +1,7 @@
 """Command-line interface: ``bench <command>``.
 
-Implemented now: ``validate``, ``audit``, ``status``, ``buildings``, ``extract``.
-Planned (see docs/preregistration.md and the next-steps guide): ``run``, ``report``, ``new-event``.
+Implemented now: ``validate``, ``audit``, ``status``, ``buildings``, ``extract``, ``run``, ``report``.
+Planned (see docs/preregistration.md and the next-steps guide): ``new-event``.
 """
 
 from __future__ import annotations
@@ -15,8 +15,6 @@ from damagesar_bench import __version__
 from damagesar_bench.config import REPO_ROOT, load_bench, load_events
 
 PLANNED = {
-    "run": "pooling, probes, recalibration, controls and statistics (Stage 2-5)",
-    "report": "HTML report from saved results (Stage 2)",
     "new-event": "damaged-building estimate for an unlabelled event (Stage 5)",
 }
 
@@ -111,6 +109,26 @@ def cmd_extract(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_run(args: argparse.Namespace) -> int:
+    from damagesar_bench.run import ComparisonSpec, run_benchmark
+
+    events = load_events(_find_config("events.yaml", args.events))
+    comps = [ComparisonSpec.parse(c) for c in (args.compare or [])]
+    out = run_benchmark(args.features, comps, events, args.out, today=_today(args.today), level=args.level,
+                        n_boot=args.n_boot, seed=args.seed, event_set=args.event_set)
+    print((out / "report.md").read_text(encoding="utf-8"))
+    print(f"Run folder: {out}")
+    return 0
+
+
+def cmd_report(args: argparse.Namespace) -> int:
+    from damagesar_bench.run import write_report
+
+    path = write_report(args.run)
+    print(f"Report: {path}")
+    return 0
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     from damagesar_bench.data.events import labels_unlocked
 
@@ -169,6 +187,23 @@ def build_parser() -> argparse.ArgumentParser:
                    help="also encode confirmatory tiles before the freeze (SAR only, no labels)")
     e.add_argument("--out", default="outputs/features", help="output folder (shards + features.parquet)")
     e.set_defaults(func=cmd_extract)
+
+    r = sub.add_parser("run", help="probes, event metrics and comparisons from building features")
+    common(r)
+    r.add_argument("--features", action="append", required=True, help="features.parquet from 'bench extract' (repeatable)")
+    r.add_argument("--compare", action="append",
+                   help="comparison 'label=encA/poolA:encB/poolB' (repeatable), e.g. rq1=dinov3_vitb16/outline:imagenet_vitb16/outline")
+    r.add_argument("--level", type=float, default=0.95, help="event-level interval level (0.975 under Bonferroni)")
+    r.add_argument("--n-boot", type=int, default=2000, help="tile-cluster bootstrap replicates")
+    r.add_argument("--seed", type=int, default=0)
+    r.add_argument("--event-set", default="auto", choices=["auto", "development", "confirmatory", "all"],
+                   help="events used in comparisons (auto: development before the freeze, confirmatory after)")
+    r.add_argument("--out", default="outputs/run", help="run folder")
+    r.set_defaults(func=cmd_run)
+
+    rp = sub.add_parser("report", help="rebuild report.md from a run folder")
+    rp.add_argument("--run", required=True, help="run folder written by 'bench run'")
+    rp.set_defaults(func=cmd_report)
 
     s = sub.add_parser("status", help="show event roles and whether confirmatory labels are locked")
     common(s)
