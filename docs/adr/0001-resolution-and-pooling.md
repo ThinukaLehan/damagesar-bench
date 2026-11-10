@@ -73,3 +73,11 @@ _To be filled after round 2._
 ## Consequences
 The choice is fixed in docs/preregistration.md before any Gate 1 AUROC is computed. Pooling code must handle
 EPSG:4326 and EPSG:3857 tiles (convert to metres).
+
+## Implementation note (10 Nov 2026)
+Area-weighted pooling is implemented in `src/damagesar_bench/pooling/footprint.py` for `outline` and
+`dilated:<m>` (true ground metres per axis, so EPSG:4326 tiles are handled). It works for any token grid
+that covers the whole tile, so the resolution decision (native vs common 0.3 m) only changes the encoder's
+input size, not the pooling code. Buildings smaller than one pixel use the token at their centre and are
+flagged (`pool_pixels` = 0); round 2 will report how many there are per event.
+
