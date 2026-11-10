@@ -3,9 +3,9 @@
 Single tracking list for the project. Tick a box (`- [x]`) when done and add the date.
 **Owner:** **You** = Thinuka · **Claude** = AI assistant (code/docs; logged in `AI_USE_LOG.md`) · **Sup** = Dr. Achala Aponsu.
 **Key dates:** plan freeze **10 Jan 2027** · Gate 1 note **18 Dec 2026** · IPD submission **28 Jan 2027** (aim earlier).
-**Rules:** all runs in the FYP Google account (`?authuser=1`, check the email) · Drive under `MyDrive/DamageSAR-Bench/` only · no AI co-author lines in commits · no confirmatory labels before 10 Jan.
+**Rules:** every change goes through a branch + pull request that you merge (never push to `main`) · all runs in the FYP Google account (`?authuser=1`, check the email) · Drive under `MyDrive/DamageSAR-Bench/` only · no AI co-author lines in commits · no confirmatory labels before 10 Jan.
 
-Last updated: 9 Nov 2026
+Last updated: 10 Nov 2026
 
 ---
 
@@ -21,6 +21,8 @@ Last updated: 9 Nov 2026
 - [ ] Copy the 3 Nov files from the old account (`MyDrive/damagesar/data/`) into `DamageSAR-Bench/01_data/derived/` (needed by c01's comparison) — **You**
 - [ ] Share the 3 Nov UNet notebook so c05 can be written (checks 9–10) — **You**
 - [ ] OK to delete the old "Untitled1" scratch notebook in the other account? — **You** decide
+
+- [ ] Review and merge PRs **in order**: #1 contracts → #2 probes → #3 pooling → #4 encoders/extract. Tick "Delete branch" after each merge so the next PR moves onto `main` automatically — **You**
 
 ## 2 · Supervisor call (briefing: https://claude.ai/artifact/KAf19x9q4LR5S9bHe4jZaT)
 
@@ -59,11 +61,11 @@ Last updated: 9 Nov 2026
 
 ## 5 · 24 Nov – 18 Dec (towards Gate 1)
 
-- [ ] Encoder plugins (DINOv3, SAR encoder, baselines)
-- [ ] `bench extract` (features to `02_models/features`)
-- [ ] Outline / dilated pooling
-- [ ] Probes + event-level bootstrap
-- [ ] `bench report` v0
+- [x] Encoder plug-in interface + ImageNet ViT-B, DINOv2, DINOv3 wrappers (10 Nov, PR #4; real-weights check in c04) · SAR encoder still to add
+- [x] `bench extract`, resumable per tile (10 Nov, PR #4)
+- [x] Outline / dilated pooling, area-weighted (10 Nov, PR #3)
+- [x] Probes + event-held-out folds + event metrics + comparison (10 Nov, PR #2)
+- [ ] `bench run` (features → probes → metrics → verdicts in one command) and `bench report` v0
 - [ ] Pilot SD → physical check of the MDE
 - [ ] Projected (layover-aware) pooling for C2 — uses c06 results
 - [ ] Random-shift null
@@ -95,5 +97,6 @@ FR13 browser → FR14 decoder → SAR encoder → neighbourhood swap → Ukraine
 
 ## Housekeeping
 
+- [x] Data contracts between stages + PR template (10 Nov, PR #1)
 - [ ] Rename the old Drive run folders to the `cNN_` names — **Claude** (via notebook)
 - [ ] Keep `AI_USE_LOG.md` up to date with each AI-assisted change — **Claude**/**You**
