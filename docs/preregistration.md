@@ -23,7 +23,7 @@ Classification of **given building footprints** as damaged-or-destroyed vs intac
 ## 4. Models
 - Core encoders: ImageNet ViT-B, DINOv2 ViT-B/14, DINOv3-LVD ViT-B/16. Optional: one SAR-pretrained encoder (flagged if it may contain BRIGHT tiles).
 - Channel adapter (1-channel summed vs 3-channel replicated): TBD on development events.
-- Probe: logistic regression, C = 1, class-balanced, no tuning on held-out events.
+- Probe: logistic regression, L2, C = 1, class-balanced, no tuning on held-out events. Features are standardised with mean and SD from the training events only; lbfgs, up to 5,000 iterations; a probe that does not converge stops the run (`probe/logistic.py`). Events with `units: none` never train.
 - **Training rule:** before the freeze, probes train on development + secondary events only; confirmatory labels are not used, even as training data. After the freeze, probes train on all events except the held-out one.
 
 ## 5. Primary claims and decision rule
