@@ -15,7 +15,7 @@ Classification of **given building footprints** as damaged-or-destroyed vs intac
 - **Ukraine units:** BRIGHT instance labels if the March 2026 release covers Ukraine (check: TBD); otherwise open footprints that pass ≥ 80% agreement **on development events**; otherwise Ukraine moves to secondary and the confirmatory set becomes 5 events, with no replacement. Decision: TBD.
 
 ## 3. Units and labels
-- One building = one instance polygon from the BRIGHT instance labels (`*_instance_damage.json`). **Label rule:** the damage class is the JSON category (intact / damaged / destroyed, mapped by name). The label-raster majority inside the footprint is computed for unlocked events as an agreement check, and its mismatch rate is reported.
+- One building = one instance polygon from the BRIGHT instance labels (`*_instance_damage.json`). **Label rule:** the damage class is the JSON category (intact / damaged / destroyed, mapped by name). The label-raster majority inside the footprint is computed for unlocked events as an agreement check, and its mismatch rate is reported (p01, 14 Nov: ≈ 0% for every development and secondary event). BRIGHT's COCO `area` field is the bounding-box area, so pixel counts are checked against the polygon's own area instead.
 - Ground area uses the true pixel size: UTM as stored; EPSG:4326 converted per axis at the tile's latitude; EPSG:3857 corrected by cos(latitude).
 - No-data rule: exclude tiles with ≥ 95% SAR no-data; drop buildings with ≥ 50% no-data footprint. SAR value 0 = no-data.
 - Ground resolution and token pooling: ADR 0001, TBD.
@@ -47,7 +47,7 @@ Classification of **given building footprints** as damaged-or-destroyed vs intac
 
 ## 6. Gates
 - **Gate 1 (18 Dec 2026, C2):** mean ΔAUROC ≥ +0.02 over the 5 development events, better than outline pooling in ≥ 4 of 5, and better than a random-shift null. Shift rule: TBD (fixed before any AUROC is computed). **Proposed null rule (to agree):** run the random-shift control R times (same shift-size distribution, different random directions); projected passes if its mean gain is above the 95th percentile of the R random-shift mean gains (R = 1 reduces to "strictly larger"). A gain of exactly 0 does not count as "better". Implemented in `stats/gates.py`.
-- **C3 (early Jan):** relative prevalence error ≤ 50% on ≥ 4 of 5 development events and better than the training-average baseline. Abstain thresholds: TBD.
+- **C3 (early Jan):** relative prevalence error ≤ 50% on ≥ 4 of 5 development events and better than the training-average baseline. **Proposed (to agree):** "better" = a lower relative error than the training-average baseline on at least 4 of the same 5 development events. Abstain thresholds: TBD.
 - **Gate 2:** definition TBD with supervisor (proposed: locked run executed once + new-event mode tested, ~25 Jan 2027).
 
 ## 7. Disclosure: what was seen before the freeze

@@ -1,6 +1,6 @@
 # ADR 0001: Ground resolution and token pooling
 
-- **Status:** proposed. Evidence round 1 done (9 Nov 2026); decide after round 2 with instance polygons, by 20 Nov 2026.
+- **Status:** proposed. Rounds 1 (9 Nov) and 2 (14 Nov) done; round 3 (AUROC on development events, `p02`) decides, by 20 Nov 2026.
 - **Date:** 2026-11-09
 - **Requirements:** FR5, FR6, NFR3
 
@@ -59,9 +59,40 @@ At least 30% of Beirut buildings cover fewer than 4 tokens even with merged comp
 4.8 m), plus area-weighted pooling, with ×2 token upsampling as an ablation. Check the cost with the B5
 timing run, because Beirut and Marshall tiles grow by 1.7–2× per side.
 
-## Evidence round 2 (to do)
-Run `notebooks/pipeline/p01_building_table.ipynb`: its summary gives the shares under 1/4/9 tokens per event with
-the **instance polygons**, at native resolution and at 0.3 m (`pct_lt_k_tokens_native` / `_target`).
+## Evidence round 2 (p01, 14 Nov 2026): instance polygons
+Share of kept buildings (BRIGHT instance polygons, after the no-data rule) that cover fewer than 1 / 4 / 9 ViT/16
+tokens, at native resolution and resampled to 0.3 m. Geometry only: no confirmatory labels are used.
+
+| Event | Role | Native < 1 / < 4 / < 9 tokens (%) | At 0.3 m < 1 / < 4 / < 9 tokens (%) |
+|---|---|---|---|
+| Beirut | development | 8.0 / 41.9 / 78.5 | 1.1 / 13.3 / 34.2 |
+| Congo | development | 33.1 / 95.5 / 99.3 | 27.3 / 91.8 / 98.9 |
+| Hawaii | development | 7.5 / 32.4 / 73.4 | 4.3 / 24.5 / 51.0 |
+| La Palma | development | 29.7 / 69.8 / 87.3 | 29.8 / 69.8 / 87.3 |
+| Libya | development | 5.3 / 28.4 / 62.4 | 2.9 / 20.4 / 46.1 |
+| Marshall | secondary | 22.6 / 91.4 / 98.0 | 2.6 / 22.6 / 70.9 |
+| Bata | confirmatory | 20.7 / 84.0 / 97.3 | 4.0 / 30.7 / 73.7 |
+| Haiti | confirmatory | 33.8 / 88.8 / 98.7 | 6.5 / 53.9 / 85.1 |
+| Morocco | confirmatory | 6.7 / 33.2 / 73.0 | 6.5 / 32.1 / 71.5 |
+| Noto | confirmatory | 25.8 / 90.6 / 97.7 | 4.0 / 51.4 / 87.9 |
+| Türkiye | confirmatory | 3.8 / 26.0 / 64.9 | 3.3 / 22.4 / 60.3 |
+
+Findings:
+1. Round 1 was indeed a lower bound: with instance polygons, 41.9% of Beirut buildings cover fewer than 4 tokens
+   (29.7% with merged label components).
+2. A common 0.3 m cuts the share under 4 tokens by 1.6–4× for the coarser events (Beirut 41.9 → 13.3%, Marshall
+   91.4 → 22.6%, Bata, Haiti, Noto) and leaves the events already near 0.3 m almost unchanged (La Palma, Morocco, Türkiye).
+3. Congo and La Palma keep 70–92% of buildings under 4 tokens even at 0.3 m: their buildings are small. For them a
+   building's vector is mostly its surroundings at any affordable resolution; this limits C2 and raises the
+   neighbourhood-shortcut risk (RQ4).
+4. 0.15 m for whole tiles is not affordable on a T4: a 0.5 m tile becomes ~3,400 px (~45,000 tokens), roughly
+   100 times the attention cost of a 1024 px tile. If finer detail is needed, crops around buildings (option 4)
+   are the realistic route.
+
+## Evidence round 3 (to do): does resolution change AUROC?
+`notebooks/pipeline/p02_resolution_benchmark_v0.ipynb` extracts DINOv3 features for the development and secondary
+events at native resolution and at 0.3 m, then runs `bench run` (exploratory, development events only). The
+decision weighs the development-event AUROC difference against the cost (timing from the same run).
 
 Note from building the loader (9 Nov): EPSG:4326 pixels are not square on the ground (Noto, 37.5°N: a pixel square
 in degrees is ~0.38 m × 0.48 m), and Hawaii's EPSG:3857 pixels are ~0.352 m on the ground, not the stored 0.377 m.
