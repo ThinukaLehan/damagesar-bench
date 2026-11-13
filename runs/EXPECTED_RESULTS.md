@@ -15,7 +15,7 @@ A rerun **passes** if it matches the expected value within the stated tolerance.
 | 5 | New instance labels coverage | 9 Nov (other account) | c02_instance_label_coverage | 3,029 files; 11 events; Ukraine 0, Mexico 0, Myanmar 0 | exact | no | ✅ PASS 9 Nov |
 | 6 | Beirut token size (label components) | 9 Nov (other account) | c03_token_size_and_resolution | 10,801 components; <1 token 7.9%, <4 tokens 29.7%, <9 tokens 54.5%; median 7.85 | exact | no | ✅ PASS 9 Nov |
 | 7 | Resolution per event | 9 Nov (other account) | c03_token_size_and_resolution | 0.2–0.6 m; Bata/Congo/Haiti/Noto EPSG:4326; Hawaii EPSG:3857 (table in ADR 0001) | 0.001 m | no | ✅ PASS 9 Nov |
-| 8 | DINOv3 ViT-B/16 forward pass | 3 Nov | c04_dinov3_forward_pass | output shape [1, 201, 768] for a 224 px input | exact | T4 | ready; needs HF_TOKEN + T4 |
+| 8 | DINOv3 ViT-B/16 forward pass | 3 Nov | c04_dinov3_forward_pass | output shape [1, 201, 768] for a 224 px input; through the package interface (14, 14, 768) at 224 px and (64, 64, 768) at 1024 px | exact | T4 | ready; needs HF_TOKEN + GH_TOKEN + T4 |
 | 9 | BRIGHT UNet zero-shot, 5 development events | 3 Nov | c05_unet_zeroshot_reproduction (to write from the 3 Nov notebook) | mIoU Beirut 31.63, Congo 55.97, Hawaii 31.73, La Palma 32.74, Libya 33.25 | 0.01 | T4 | to do |
 | 10 | UNet inference speed | 3 Nov | c05_unet_zeroshot_reproduction | ≈ 1.2 tiles/s on T4 | ± 20% | T4 | to do |
 | 11 | C2 SAR scene metadata (new, not a rerun) | — | c06_sar_scene_metadata | one row per event with status geometry-ready / match-only / dilated-only; no expected values yet (first run sets them) | — | no | ready; needs GH_TOKEN |

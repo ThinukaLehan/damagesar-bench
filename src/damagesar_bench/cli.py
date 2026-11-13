@@ -1,8 +1,7 @@
 """Command-line interface: ``bench <command>``.
 
-Implemented now: ``validate``, ``audit``, ``status``, ``buildings``.
-Planned (see docs/preregistration.md and the next-steps guide): ``extract``, ``run``, ``report``,
-``new-event``.
+Implemented now: ``validate``, ``audit``, ``status``, ``buildings``, ``extract``, ``run``, ``report``.
+Planned (see docs/preregistration.md and the next-steps guide): ``new-event``.
 """
 
 from __future__ import annotations
@@ -16,9 +15,6 @@ from damagesar_bench import __version__
 from damagesar_bench.config import REPO_ROOT, load_bench, load_events
 
 PLANNED = {
-    "extract": "extract and cache frozen-encoder features (Stage 2, from 24 Nov)",
-    "run": "pooling, probes, recalibration, controls and statistics (Stage 2-5)",
-    "report": "HTML report from saved results (Stage 2)",
     "new-event": "damaged-building estimate for an unlabelled event (Stage 5)",
 }
 
@@ -89,6 +85,50 @@ def cmd_buildings(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_extract(args: argparse.Namespace) -> int:
+    import pandas as pd
+
+    from damagesar_bench.encoders import get_encoder
+    from damagesar_bench.encoders.extract import extract, read_bright_tile, tiles_per_second
+
+    events = load_events(_find_config("events.yaml", args.events))
+    buildings = pd.read_parquet(args.buildings)
+    if args.events_only:
+        buildings = buildings[buildings["event"].isin(args.events_only.split(","))]
+    enc = get_encoder(args.encoder)
+    out = Path(args.out)
+    df, rep = extract(buildings, lambda t: read_bright_tile(args.root, t), enc, args.pooling, out, events,
+                      today=_today(args.today), target_res_m=args.target_res,
+                      include_confirmatory=args.include_confirmatory, log=print)
+    path = out / "features.parquet"
+    df.to_parquet(path, index=False)
+    print(f"{rep.tiles_total} tiles: {rep.tiles_encoded} encoded now, {rep.tiles_done_before} already done"
+          f"{f', {rep.tiles_skipped_confirmatory} confirmatory tiles skipped (before the freeze)' if rep.tiles_skipped_confirmatory else ''}")
+    print(f"{len(df)} building rows ({', '.join(sorted(df['pooling'].unique()))}); "
+          f"{tiles_per_second(rep):.2f} tiles/s\nFeatures: {path}")
+    return 0
+
+
+def cmd_run(args: argparse.Namespace) -> int:
+    from damagesar_bench.run import ComparisonSpec, run_benchmark
+
+    events = load_events(_find_config("events.yaml", args.events))
+    comps = [ComparisonSpec.parse(c) for c in (args.compare or [])]
+    out = run_benchmark(args.features, comps, events, args.out, today=_today(args.today), level=args.level,
+                        n_boot=args.n_boot, seed=args.seed, event_set=args.event_set)
+    print((out / "report.md").read_text(encoding="utf-8"))
+    print(f"Run folder: {out}")
+    return 0
+
+
+def cmd_report(args: argparse.Namespace) -> int:
+    from damagesar_bench.run import write_report
+
+    path = write_report(args.run)
+    print(f"Report: {path}")
+    return 0
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     from damagesar_bench.data.events import labels_unlocked
 
@@ -98,6 +138,8 @@ def cmd_status(args: argparse.Namespace) -> int:
     print(f"Freeze date: {events.freeze_date.isoformat()}  Confirmatory labels: {state}")
     for role in ("confirmatory", "development", "secondary"):
         print(f"  {role:<13} {', '.join(events.keys_with_role(role))}")
+    from damagesar_bench.encoders import available
+    print(f"Encoders: {', '.join(available())}")
     return 0
 
 
@@ -131,6 +173,37 @@ def build_parser() -> argparse.ArgumentParser:
     b.add_argument("--events-only", help="comma-separated event keys to include (default: all)")
     b.add_argument("--out", default="outputs", help="output folder (default: outputs)")
     b.set_defaults(func=cmd_buildings)
+
+    e = sub.add_parser("extract", help="encode tiles and pool building features (resumable)")
+    common(e)
+    e.add_argument("--buildings", required=True, help="buildings.parquet from 'bench buildings'")
+    e.add_argument("--root", required=True, help="BRIGHT root with post-event/")
+    e.add_argument("--encoder", required=True, help="encoder name (see 'bench status')")
+    e.add_argument("--pooling", action="append", required=True,
+                   help="pooling method, repeatable: outline, dilated:3")
+    e.add_argument("--target-res", type=float, default=None, help="resample tiles to this ground resolution (m)")
+    e.add_argument("--events-only", help="comma-separated event keys to include (default: all allowed)")
+    e.add_argument("--include-confirmatory", action="store_true",
+                   help="also encode confirmatory tiles before the freeze (SAR only, no labels)")
+    e.add_argument("--out", default="outputs/features", help="output folder (shards + features.parquet)")
+    e.set_defaults(func=cmd_extract)
+
+    r = sub.add_parser("run", help="probes, event metrics and comparisons from building features")
+    common(r)
+    r.add_argument("--features", action="append", required=True, help="features.parquet from 'bench extract' (repeatable)")
+    r.add_argument("--compare", action="append",
+                   help="comparison 'label=encA/poolA:encB/poolB' (repeatable), e.g. rq1=dinov3_vitb16/outline:imagenet_vitb16/outline")
+    r.add_argument("--level", type=float, default=0.95, help="event-level interval level (0.975 under Bonferroni)")
+    r.add_argument("--n-boot", type=int, default=2000, help="tile-cluster bootstrap replicates")
+    r.add_argument("--seed", type=int, default=0)
+    r.add_argument("--event-set", default="auto", choices=["auto", "development", "confirmatory", "all"],
+                   help="events used in comparisons (auto: development before the freeze, confirmatory after)")
+    r.add_argument("--out", default="outputs/run", help="run folder")
+    r.set_defaults(func=cmd_run)
+
+    rp = sub.add_parser("report", help="rebuild report.md from a run folder")
+    rp.add_argument("--run", required=True, help="run folder written by 'bench run'")
+    rp.set_defaults(func=cmd_report)
 
     s = sub.add_parser("status", help="show event roles and whether confirmatory labels are locked")
     common(s)

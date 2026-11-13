@@ -17,11 +17,12 @@ dependencies = [
     "rasterio>=1.3",
     "pyarrow>=14",
     "scipy>=1.11",
+    "scikit-learn>=1.3",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.4", "pytest-cov>=4.1", "pyproj>=3.6", "scikit-learn>=1.3", "statsmodels>=0.14"]
-ml = ["torch>=2.1", "transformers>=4.40", "timm>=0.9", "scikit-learn>=1.3"]
+dev = ["pytest>=7.4", "pytest-cov>=4.1", "pyproj>=3.6", "statsmodels>=0.14"]
+ml = ["torch>=2.1", "transformers>=4.40", "timm>=0.9"]
 geo = ["shapely>=2.0", "geopandas>=0.14"]
 
 [project.scripts]

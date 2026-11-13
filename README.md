@@ -16,9 +16,9 @@ Final-year project, 6SENG010C Software Engineering Final Project (2026–27), Th
 | `bench audit` | Writes `splits.json` (leave-one-event-out folds); leakage checks | ✅ splits · ⏳ leakage |
 | `bench status` | Shows event roles and whether confirmatory labels are locked | ✅ |
 | `bench buildings` | Builds `buildings.parquet` from BRIGHT instance labels (footprints, ground area, no-data rule, labels where unlocked) | ✅ |
-| `bench extract` | Extracts and caches frozen-encoder features | ⏳ Stage 2 |
-| `bench run` | Pooling, probes, recalibration, controls, statistics | ⏳ Stages 2–5 |
-| `bench report` | HTML report from saved results | ⏳ Stage 2 |
+| `bench extract` | Encodes tiles and pools building features (outline, dilated); resumable per tile | ✅ (projected pooling ⏳) |
+| `bench run` | Probes, per-event metrics, comparisons with event-level verdicts | ✅ · recalibration, controls ⏳ |
+| `bench report` | Markdown report from a run folder | ✅ v0 · HTML ⏳ |
 | `bench new-event` | Damaged-building estimate for an unlabelled event, or "estimate unreliable" | ⏳ Stage 5 |
 
 ## Install
