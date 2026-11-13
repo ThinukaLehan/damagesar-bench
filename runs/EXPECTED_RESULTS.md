@@ -19,7 +19,7 @@ A rerun **passes** if it matches the expected value within the stated tolerance.
 | 9 | BRIGHT UNet zero-shot, 5 development events | 3 Nov | c05_unet_zeroshot_reproduction (to write from the 3 Nov notebook) | mIoU Beirut 31.63, Congo 55.97, Hawaii 31.73, La Palma 32.74, Libya 33.25 | 0.01 | T4 | to do |
 | 10 | UNet inference speed | 3 Nov | c05_unet_zeroshot_reproduction | ≈ 1.2 tiles/s on T4 | ± 20% | T4 | to do |
 | 11 | C2 SAR scene metadata (new, not a rerun) | — | c06_sar_scene_metadata | one row per event with status geometry-ready / match-only / dilated-only; no expected values yet (first run sets them) | — | no | ⚠ first run 10 Nov: 5 events with full geometry; Türkiye label bug; Umbra search to widen; rerun pending |
+| 12 | Building table (new, not a rerun) | — | p01_building_table | sets the reference values: 244,976 buildings, 242,842 kept; JSON vs raster agreement ≈ 100% | exact | no | ✅ first run 14 Nov (values in EXPERIMENT_LOG) |
 
 Not rerun: the 31 Oct full audit (offsets, raw-signal AUROC). It touched confirmatory events in ways the
 pre-registration already discloses; repeating it adds no evidence and would look at confirmatory data again.
-| 12 | Building table (new, not a rerun) | — | p01_building_table | sets the reference values: 244,976 buildings, 242,842 kept; JSON vs raster agreement ≈ 100% | exact | no | ✅ first run 14 Nov (values in EXPERIMENT_LOG) |
