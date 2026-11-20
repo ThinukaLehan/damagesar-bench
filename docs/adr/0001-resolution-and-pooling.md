@@ -1,6 +1,6 @@
 # ADR 0001: Ground resolution and token pooling
 
-- **Status:** proposed. Rounds 1 (9 Nov) and 2 (14 Nov) done; round 3 (AUROC on development events, `p02`) decides, by 20 Nov 2026.
+- **Status:** accepted (20 Nov 2026): native resolution. Rounds 1 (9 Nov), 2 (14 Nov) and 3 (20 Nov, `p02` + `p02b`) done.
 - **Date:** 2026-11-09
 - **Requirements:** FR5, FR6, NFR3
 
@@ -89,17 +89,36 @@ Findings:
    100 times the attention cost of a 1024 px tile. If finer detail is needed, crops around buildings (option 4)
    are the realistic route.
 
-## Evidence round 3 (to do): does resolution change AUROC?
-`notebooks/pipeline/p02_resolution_benchmark_v0.ipynb` extracts DINOv3 features for the development and secondary
-events at native resolution and at 0.3 m, then runs `bench run` (exploratory, development events only). The
-decision weighs the development-event AUROC difference against the cost (timing from the same run).
+## Evidence round 3 (p02 + p02b, 20 Nov 2026): does resolution change AUROC?
+DINOv3 ViT-B/16 (frozen) on the development and secondary events, 87,886 buildings per setting; probes per
+held-out development event, trained on the other development events + Marshall. Exploratory (development only).
+Features: `02_models/features/2026-11-20_dinov3_resolution/`; run: `04_outputs/runs/2026-11-20_p02b-resolution-benchmark-resume/`.
+
+Building-level AUROC per held-out event:
+
+| Setting | Beirut | Congo | Hawaii | La Palma | Libya | Mean |
+|---|---|---|---|---|---|---|
+| native, outline | 0.646 | 0.849 | 0.504 | 0.604 | 0.498 | 0.620 |
+| native, dilated 3 m | 0.651 | 0.853 | 0.501 | 0.605 | 0.478 | 0.618 |
+| 0.3 m, outline | 0.531 | 0.762 | 0.576 | 0.598 | 0.486 | 0.591 |
+| 0.3 m, dilated 3 m | 0.543 | 0.774 | 0.566 | 0.598 | 0.497 | 0.596 |
+
+Event-level comparison, 0.3 m vs native (5 events, 95% t-interval, 4 df): outline −0.030 [−0.122, +0.062],
+dilated −0.022 [−0.110, +0.066]; both **inconclusive**; SD of per-event gains 0.074 / 0.071. Per event, 0.3 m
+loses 0.08–0.12 in Beirut and Congo and gains 0.06–0.07 in Hawaii.
+
+Cost (T4, file reading and pooling included, 1,026 tiles): native 506 s (2.03 tiles/s), 0.3 m 738 s (1.39 tiles/s).
 
 Note from building the loader (9 Nov): EPSG:4326 pixels are not square on the ground (Noto, 37.5°N: a pixel square
 in degrees is ~0.38 m × 0.48 m), and Hawaii's EPSG:3857 pixels are ~0.352 m on the ground, not the stored 0.377 m.
 The resolution table in round 1 used the x side only; the building table uses the true pixel area.
 
-## Decision
-_To be filled after round 2._
+## Decision (20 Nov 2026)
+**Native resolution.** Resampling every tile to a common 0.3 m does not improve AUROC on the development events
+(inconclusive, point estimates favour native), its effect changes sign between events, and it costs ~1.5× the
+extraction time. Round 2's concern (many buildings under 4 tokens) stands and is handled by reporting it per event
+and by the neighbourhood control (RQ4), not by resampling. Revisit only with building crops (option 4) if C2 needs
+finer detail.
 
 ## Consequences
 The choice is fixed in docs/preregistration.md before any Gate 1 AUROC is computed. Pooling code must handle
