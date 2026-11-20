@@ -37,6 +37,21 @@ from .base import Encoder, EncoderError
 MANIFEST = "manifest.json"
 
 
+
+FEATURES_ROW_GROUP = 8192   # rows per parquet row group in a features file
+
+
+def write_features(df: pd.DataFrame, path: str | Path) -> Path:
+    """Write a building-features table sorted by (encoder, pooling), in small row groups.
+
+    ``bench run`` reads one setting at a time with parquet row filters; small row groups that each
+    hold a single setting let it skip the rest of the file instead of decoding all of it.
+    """
+    path = Path(path)
+    df = df.sort_values(["encoder", "pooling"], kind="stable", ignore_index=True)
+    df.to_parquet(path, index=False, row_group_size=FEATURES_ROW_GROUP)
+    return path
+
 def resample(image: np.ndarray, out_h: int, out_w: int) -> np.ndarray:
     """Bilinear resize with pixel centres aligned (output centre i+0.5 <- input (i+0.5)*H/out_h)."""
     h, w = image.shape

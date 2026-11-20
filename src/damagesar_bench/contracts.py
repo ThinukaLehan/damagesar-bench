@@ -103,6 +103,9 @@ def _check_labels(df: pd.DataFrame, events: EventsConfig, today: date | None, ta
         raise ContractError(f"{table}: missing labels for unlocked events {ev}")
 
 
+FINITE_CHECK_BLOCK = 64   # feature columns checked at a time
+
+
 def _check_single(df: pd.DataFrame, col: str, table: str) -> None:
     if df[col].isna().any() or (df[col].astype(str).str.len() == 0).any():
         raise ContractError(f"{table}: '{col}' must be filled in on every row")
@@ -126,9 +129,12 @@ def validate_building_features(df: pd.DataFrame, events: EventsConfig, today: da
         raise ContractError(f"{t}: no feature columns (f0000, f0001, ...)")
     if feats != [feature_name(i) for i in range(len(feats))]:
         raise ContractError(f"{t}: feature columns must be contiguous from f0000")
-    x = df[feats].to_numpy(dtype=float)
-    if not np.isfinite(x).all():
-        raise ContractError(f"{t}: features contain NaN or inf")
+    # Check in column blocks: a full float64 copy of a large table can exhaust Colab's RAM.
+    for i in range(0, len(feats), FINITE_CHECK_BLOCK):
+        x = df[feats[i:i + FINITE_CHECK_BLOCK]].to_numpy(dtype=float)
+        if not np.isfinite(x).all():
+            raise ContractError(f"{t}: features contain NaN or inf")
+        del x
     area = pd.to_numeric(df["area_m2"], errors="coerce")
     if area.isna().any() or (area <= 0).any():
         raise ContractError(f"{t}: area_m2 must be a positive number")
