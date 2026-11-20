@@ -25,9 +25,10 @@ Last updated: 14 Nov 2026
 - [x] Merge PRs #1–#8 (all in `main`, 13 Nov)
 - [ ] Delete the old branches on GitHub (all their work is in `main`) — **You**, or tell Claude
 - [x] Run **p02_resolution_benchmark_v0** (T4) — features done 20 Nov; bench run crashed (out of memory), rerun as **p02b** on CPU after PR #11
-- [ ] Controls notebook on the saved p02 features: image-free (count/size) and neighbourhood-only probes (RQ4) — CPU — **You** (after its PR)
-- [ ] ImageNet ViT-B features at native resolution (RQ1 baseline) — T4 — **You** (after its PR)
-- [ ] C2 feasibility: measured offsets vs token size per development event — **Claude**
+- [ ] Run **p03_controls_and_imagenet_v0** (T4, ~45 min): image-free + ring controls (RQ4) and ImageNet ViT-B baseline (RQ1 preview) — **You** (after its PR)
+- [x] C2 feasibility note (`docs/c2/feasibility_2026-11-20.md`, 20 Nov): Hawaii and La Palma have no measurable offset → Gate 1 rule to settle before any C2 AUROC — **Claude**
+- [ ] Decide the Gate 1 rule (keep / offset events only / image-matched shift) — **Sup**
+- [ ] CPU notebook: per-tile footprint-vs-SAR offset on development events (31 Oct cross-correlation in the repo) — **Claude**
 - [ ] Rerun **c06** after the c06-fix PR — **You**
 - [ ] Add the 31 Oct audit notebook to the repo so it can be tagged `audit-2026-10-31` — **You** share it, **Claude** adds it
 

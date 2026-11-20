@@ -177,3 +177,55 @@ def test_pool_features_dilated_and_errors(events_cfg, before_freeze):
 def test_token_side_in_metres_is_consistent():
     # sanity check of the geometry used in ADR 0001: 16 px tokens at 0.5 m are 8 m wide
     assert 16 * G.px_x_m == 8.0 and math.isclose(1024 / 64 * 0.3, 4.8)
+
+
+# ---------------------------------------------------------------- ring (neighbourhood control)
+
+def test_ring_parse():
+    assert Method.parse("ring:10").name == "ring10m"
+    for bad in ("ring:0", "ring:-2", "ring"):
+        with pytest.raises(PoolingError):
+            Method.parse(bad)
+
+
+def test_ring_never_uses_a_token_holding_the_building():
+    # Building fills token (1, 1) exactly (pixels 16..31); 8 m ring = 16 px around it at 0.5 m/px.
+    t = token_grid()
+    vec, npix = pool_building(t, square(16, 16, 32, 32), G, Method.parse("ring:8"))
+    assert npix > 0
+    # Ring reaches the 8 neighbours of (1, 1) and (by corners) nothing else; (1, 1) itself is excluded.
+    # Weighted mean of rows 0..2 and cols 0..2 minus the centre: symmetric -> mean row 1, mean col 1.
+    assert vec[0] == pytest.approx(1.0) and vec[1] == pytest.approx(1.0)
+    # The centre token's own value (10*1 + 1 = 11) must not be the answer by construction:
+    out, _ = pool_building(t, square(16, 16, 32, 32), G, Method.parse("outline"))
+    assert out[2] == pytest.approx(11.0)
+
+
+def test_ring_excludes_every_token_the_building_touches():
+    # Building straddles tokens (1, 1) and (1, 2); a token value of 100 marks them.
+    t = token_grid()
+    t[1, 1, 2] = t[1, 2, 2] = 100.0
+    vec, _ = pool_building(t, square(20, 18, 44, 30), G, Method.parse("ring:4"))
+    # With the marked tokens excluded, the value is a mean of unmarked tokens (all <= 33).
+    assert vec[2] <= 33.0
+
+
+def test_ring_falls_back_to_neighbour_tokens_when_ring_stays_inside():
+    # Huge building covering the whole tile's middle tokens, ring too narrow to leave them.
+    t = token_grid()
+    vec, npix = pool_building(t, square(0, 0, 64, 64), G, Method.parse("ring:0.25"))
+    assert npix == 0                             # flagged
+    assert np.isfinite(vec).all()
+
+
+def test_ring_runs_through_pool_features(events_cfg, before_freeze):
+    import damagesar_bench.pooling.footprint as fp
+    b = pd.DataFrame({
+        "event": ["beirut", "beirut"], "tile_id": ["beirut_t1", "beirut_t1"], "instance_id": [1, 2],
+        "role": ["development", "development"], "damaged": [True, False], "labels_locked": [False, False],
+        "area_m2": [64.0, 64.0], "excluded_reason": [None, None],
+        "segmentation_px": [json.dumps(square(16, 16, 32, 32)), json.dumps(square(40, 40, 56, 56))],
+    })
+    df = pool_features(b, lambda _t: token_grid(), lambda _t: G, "toy", "ring:8", events_cfg, before_freeze)
+    assert list(df["pooling"].unique()) == ["ring8m"]
+    assert len(feature_columns(df)) == 3

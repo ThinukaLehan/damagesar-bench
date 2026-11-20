@@ -122,7 +122,7 @@ def read_setting(feature_files: list[str | Path], encoder: str, pooling: str) ->
 def run_benchmark(
     feature_files: list[str | Path], comparisons: list[ComparisonSpec], events: EventsConfig, out_dir: str | Path,
     *, today: date | None = None, level: float = 0.95, n_boot: int = 2000, seed: int = 0,
-    event_set: str = "auto",
+    event_set: str = "auto", only_compared: bool = False,
 ) -> Path:
     if not feature_files:
         raise RunError("give at least one features file")
@@ -134,6 +134,9 @@ def run_benchmark(
             if side not in settings:
                 raise RunError(f"comparison {c.label!r}: setting {side[0]}/{side[1]} not in the features "
                                f"(have {[f'{e}/{p}' for e, p in settings]})")
+    if only_compared:   # probe only the settings some comparison uses (others in the files are skipped)
+        used = {side for c in comparisons for side in (c.a, c.b)}
+        settings = [s for s in settings if s in used]
     # One (encoder, pooling) setting in memory at a time: a whole BRIGHT features file with several
     # settings does not fit in a free Colab session alongside the copies the probes make.
     score_parts, fits = [], []
