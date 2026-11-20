@@ -24,7 +24,10 @@ Last updated: 14 Nov 2026
 
 - [x] Merge PRs #1–#8 (all in `main`, 13 Nov)
 - [ ] Delete the old branches on GitHub (all their work is in `main`) — **You**, or tell Claude
-- [ ] Run **p02_resolution_benchmark_v0** (T4) after its PR is merged — ADR 0001 round 3 + benchmark v0 — **You**
+- [x] Run **p02_resolution_benchmark_v0** (T4) — features done 20 Nov; bench run crashed (out of memory), rerun as **p02b** on CPU after PR #11
+- [ ] Controls notebook on the saved p02 features: image-free (count/size) and neighbourhood-only probes (RQ4) — CPU — **You** (after its PR)
+- [ ] ImageNet ViT-B features at native resolution (RQ1 baseline) — T4 — **You** (after its PR)
+- [ ] C2 feasibility: measured offsets vs token size per development event — **Claude**
 - [ ] Rerun **c06** after the c06-fix PR — **You**
 - [ ] Add the 31 Oct audit notebook to the repo so it can be tagged `audit-2026-10-31` — **You** share it, **Claude** adds it
 
@@ -45,7 +48,7 @@ Last updated: 14 Nov 2026
 
 - [ ] c06 → fix the coverage label, add the Umbra per-event folder search, rerun, copy the CSV into `docs/c2/` (first run logged 14 Nov)
 - [x] p01 → label format OK, raster agreement ≈ 100%, ADR 0001 round 2 written (14 Nov); area check fixed (BRIGHT `area` = bounding box)
-- [ ] ADR 0001 round 3 (p02) → decide resolution
+- [x] ADR 0001 round 3 (p02 + p02b, 20 Nov) → native resolution
 - [x] c01 → all per-event tile counts match 3 Nov; checks 1–4 marked (14 Nov)
 - [x] c04 → check 8 marked; timing 10.5 tiles/s (14 Nov)
 - [ ] Write c05 UNet reproduction notebook (after you share the 3 Nov notebook)

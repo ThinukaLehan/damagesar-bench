@@ -18,7 +18,7 @@ Classification of **given building footprints** as damaged-or-destroyed vs intac
 - One building = one instance polygon from the BRIGHT instance labels (`*_instance_damage.json`). **Label rule:** the damage class is the JSON category (intact / damaged / destroyed, mapped by name). The label-raster majority inside the footprint is computed for unlocked events as an agreement check, and its mismatch rate is reported (p01, 14 Nov: ≈ 0% for every development and secondary event). BRIGHT's COCO `area` field is the bounding-box area, so pixel counts are checked against the polygon's own area instead.
 - Ground area uses the true pixel size: UTM as stored; EPSG:4326 converted per axis at the tile's latitude; EPSG:3857 corrected by cos(latitude).
 - No-data rule: exclude tiles with ≥ 95% SAR no-data; drop buildings with ≥ 50% no-data footprint. SAR value 0 = no-data.
-- Ground resolution and token pooling: ADR 0001, TBD.
+- Ground resolution: **native** (ADR 0001, decided 20 Nov 2026 on development events only). Token pooling: area-weighted (`pooling/footprint.py`).
 
 ## 4. Models
 - Core encoders: ImageNet ViT-B, DINOv2 ViT-B/14, DINOv3-LVD ViT-B/16. Optional: one SAR-pretrained encoder (flagged if it may contain BRIGHT tiles).
