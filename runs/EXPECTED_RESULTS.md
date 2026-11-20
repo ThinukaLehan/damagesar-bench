@@ -20,6 +20,7 @@ A rerun **passes** if it matches the expected value within the stated tolerance.
 | 10 | UNet inference speed | 3 Nov | c05_unet_zeroshot_reproduction | ≈ 1.2 tiles/s on T4 | ± 20% | T4 | to do |
 | 11 | C2 SAR scene metadata (new, not a rerun) | — | c06_sar_scene_metadata | one row per event with status geometry-ready / match-only / dilated-only; no expected values yet (first run sets them) | — | no | ⚠ first run 10 Nov: 5 events with full geometry; Türkiye label bug; Umbra search to widen; rerun pending |
 | 12 | Building table (new, not a rerun) | — | p01_building_table | sets the reference values: 244,976 buildings, 242,842 kept; JSON vs raster agreement ≈ 100% | exact | no | ✅ first run 14 Nov (values in EXPERIMENT_LOG) |
+| 13 | Resolution test + benchmark v0 (new, ADR 0001 round 3) | — | p02_resolution_benchmark_v0 | first run sets the values: per-event AUROC for DINOv3 at native and 0.3 m, outline and 3 m dilated; timing per resolution | — | T4 | ready after this PR; needs p01 output |
 
 Not rerun: the 31 Oct full audit (offsets, raw-signal AUROC). It touched confirmatory events in ways the
 pre-registration already discloses; repeating it adds no evidence and would look at confirmatory data again.
