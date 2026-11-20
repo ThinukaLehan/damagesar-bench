@@ -16,6 +16,7 @@ confirmatory event must be present, so none can drop out silently.
 
 from __future__ import annotations
 
+import gc
 import hashlib
 import json
 import subprocess
@@ -90,6 +91,34 @@ def comparison_events(events: EventsConfig, today: date | None, event_set: str) 
     raise RunError(f"unknown event set {event_set!r} (auto, development, confirmatory, all)")
 
 
+def feature_settings(feature_files: list[str | Path]) -> list[tuple[str, str]]:
+    """Every (encoder, pooling) in the files, read without loading the feature columns."""
+    found: set[tuple[str, str]] = set()
+    for p in feature_files:
+        keys = pd.read_parquet(p, columns=["encoder", "pooling"])
+        found |= set(zip(keys["encoder"], keys["pooling"]))
+    return sorted(found)
+
+
+def read_setting(feature_files: list[str | Path], encoder: str, pooling: str) -> pd.DataFrame:
+    """The rows of one (encoder, pooling) setting from every file (parquet row filters, so only
+    that setting is loaded)."""
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    filters = [("encoder", "==", encoder), ("pooling", "==", pooling)]
+    tables = [pq.read_table(p, filters=filters) for p in feature_files]
+    tables = [t for t in tables if t.num_rows]
+    if not tables:
+        raise RunError(f"no rows for setting {encoder}/{pooling}")
+    table = pa.concat_tables(tables) if len(tables) > 1 else tables[0]
+    del tables
+    block = table.to_pandas(split_blocks=True, self_destruct=True)   # avoids a second full copy
+    del table
+    block["damaged"] = block["damaged"].astype("boolean")
+    return block
+
+
 def run_benchmark(
     feature_files: list[str | Path], comparisons: list[ComparisonSpec], events: EventsConfig, out_dir: str | Path,
     *, today: date | None = None, level: float = 0.95, n_boot: int = 2000, seed: int = 0,
@@ -99,15 +128,23 @@ def run_benchmark(
         raise RunError("give at least one features file")
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    feats = pd.concat([pd.read_parquet(p) for p in feature_files], ignore_index=True)
-    feats["damaged"] = feats["damaged"].astype("boolean")
-    settings = sorted(set(zip(feats["encoder"], feats["pooling"])))
+    settings = feature_settings(feature_files)
     for c in comparisons:
         for side in (c.a, c.b):
             if side not in settings:
                 raise RunError(f"comparison {c.label!r}: setting {side[0]}/{side[1]} not in the features "
                                f"(have {[f'{e}/{p}' for e, p in settings]})")
-    scores, fits = run_probes(feats, events, today, seed=seed)
+    # One (encoder, pooling) setting in memory at a time: a whole BRIGHT features file with several
+    # settings does not fit in a free Colab session alongside the copies the probes make.
+    score_parts, fits = [], []
+    for enc, pool in settings:
+        block = read_setting(feature_files, enc, pool)
+        s, f = run_probes(block, events, today, seed=seed)
+        score_parts.append(s)
+        fits.extend(f)
+        del block
+        gc.collect()
+    scores = pd.concat(score_parts, ignore_index=True)
     metrics = event_metrics(scores, events, n_boot=n_boot, seed=seed)
     ev_list = comparison_events(events, today, event_set)
     phase = "locked" if labels_unlocked(events, today) else "development"

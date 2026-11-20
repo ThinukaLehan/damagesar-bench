@@ -89,7 +89,7 @@ def cmd_extract(args: argparse.Namespace) -> int:
     import pandas as pd
 
     from damagesar_bench.encoders import get_encoder
-    from damagesar_bench.encoders.extract import extract, read_bright_tile, tiles_per_second
+    from damagesar_bench.encoders.extract import extract, read_bright_tile, tiles_per_second, write_features
 
     events = load_events(_find_config("events.yaml", args.events))
     buildings = pd.read_parquet(args.buildings)
@@ -101,7 +101,7 @@ def cmd_extract(args: argparse.Namespace) -> int:
                       today=_today(args.today), target_res_m=args.target_res,
                       include_confirmatory=args.include_confirmatory, log=print)
     path = out / "features.parquet"
-    df.to_parquet(path, index=False)
+    write_features(df, path)
     print(f"{rep.tiles_total} tiles: {rep.tiles_encoded} encoded now, {rep.tiles_done_before} already done"
           f"{f', {rep.tiles_skipped_confirmatory} confirmatory tiles skipped (before the freeze)' if rep.tiles_skipped_confirmatory else ''}")
     print(f"{len(df)} building rows ({', '.join(sorted(df['pooling'].unique()))}); "
