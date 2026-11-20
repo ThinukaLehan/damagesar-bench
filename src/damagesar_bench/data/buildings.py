@@ -48,8 +48,19 @@ CATEGORY_MAP = {
 }
 
 INSTANCE_SUFFIX = "_instance_damage.json"
-# Reported COCO area vs our pixel count: allowed relative difference before we flag the building.
+# Rasterised pixel count vs the polygon's own (shoelace) area: allowed relative difference before
+# a building is flagged, with an absolute floor because tiny polygons lose or gain whole pixels.
+# (BRIGHT's COCO "area" field is the bounding-box area w x h, not the polygon area, so it is kept
+# for reference but never used for this check; see EXPERIMENT_LOG 2026-11-14.)
 AREA_TOLERANCE = 0.25
+AREA_FLOOR_PX = 4.0
+
+
+def area_disagrees(area_px: float, polygon_px: float) -> bool:
+    """True if the rasterised pixel count is far from the polygon's geometric area."""
+    if polygon_px <= 0:
+        return area_px > 0
+    return abs(area_px - polygon_px) > max(AREA_TOLERANCE * polygon_px, AREA_FLOOR_PX)
 
 
 class BuildingTableError(ValueError):
@@ -176,6 +187,7 @@ class BuildStats:
     buildings: int = 0
     buildings_excluded_nodata: int = 0
     area_flags: int = 0
+    reported_area_is_bbox: int = 0
     sample_id_mismatches: int = 0
     events: dict = field(default_factory=dict)
 
@@ -249,8 +261,12 @@ def _tile_rows(name: str, raw: bytes, events: EventsConfig, unlocked: bool, rule
         area_px = int(mask.sum())
         win = (slice(r0, r0 + mask.shape[0]), slice(c0, c0 + mask.shape[1]))
         poly_area = sum(polygon_area(p[0::2], p[1::2]) for p in polys)
-        reported = float(ann.get("area", poly_area))
-        area_flag = reported > 0 and abs(area_px - reported) / reported > AREA_TOLERANCE
+        reported = float(ann["area"]) if ann.get("area") is not None else None
+        bbox = ann.get("bbox")
+        reported_is_bbox = (reported is not None and bbox is not None
+                            and abs(reported - float(bbox[2]) * float(bbox[3])) <= 0.5)
+        stats.reported_area_is_bbox += int(reported_is_bbox)
+        area_flag = area_disagrees(area_px, poly_area)
         stats.area_flags += int(area_flag)
 
         # Order matters: a blank tile excludes everything; an empty footprint is not a no-data case.
@@ -275,7 +291,9 @@ def _tile_rows(name: str, raw: bytes, events: EventsConfig, unlocked: bool, rule
             "instance_id": int(ann["id"]),
             "n_polygons": len(polys),
             "area_px": area_px,
+            "area_px_polygon": poly_area,
             "area_px_reported": reported,
+            "reported_area_is_bbox": bool(reported_is_bbox),
             "area_flag": bool(area_flag),
             "bbox_x": float(ann["bbox"][0]) if ann.get("bbox") else None,
             "bbox_y": float(ann["bbox"][1]) if ann.get("bbox") else None,

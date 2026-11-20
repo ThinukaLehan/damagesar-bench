@@ -196,14 +196,30 @@ def test_bad_inputs_raise(tmp_path, events_cfg, before_freeze):
         B.build_building_table(d3, events_cfg, today=before_freeze)
 
 
-def test_area_flag_when_reported_area_disagrees(tmp_path, events_cfg, before_freeze):
+def test_area_disagrees_rule():
+    assert not B.area_disagrees(100, 100)
+    assert not B.area_disagrees(76, 100)          # within 25%
+    assert B.area_disagrees(70, 100)
+    assert not B.area_disagrees(2, 5)             # tiny polygon: absolute floor of 4 px
+    assert B.area_disagrees(0, 10)
+    assert B.area_disagrees(3, 0) and not B.area_disagrees(0, 0)
+
+
+def test_reported_area_is_kept_but_not_used_for_the_flag(tmp_path, events_cfg, before_freeze):
+    # BRIGHT's "area" is the bounding-box area (w x h). A rotated square fills half its box.
     d = tmp_path / "flag"
-    doc = instance_doc("beirut-explosion_00000002", [(1, rect(0, 0, 10, 10))])
-    doc["annotations"][0]["area"] = 300                     # we count 100 pixels
+    diamond = [5, 0, 10, 5, 5, 10, 0, 5]                   # polygon area 50, bbox 10 x 10
+    doc = instance_doc("beirut-explosion_00000002", [(1, diamond)])
+    doc["annotations"][0]["area"] = 100                     # = bbox area, as in BRIGHT
     d.mkdir()
     (d / f"beirut-explosion_00000002{B.INSTANCE_SUFFIX}").write_text(json.dumps(doc))
     df, stats = B.build_building_table(d, events_cfg, today=before_freeze)
-    assert df.area_flag.iloc[0] and stats.area_flags == 1
+    r = df.iloc[0]
+    assert r.area_px_polygon == pytest.approx(50.0)
+    assert r.area_px_reported == 100 and r.reported_area_is_bbox
+    assert not r.area_flag and stats.area_flags == 0
+    assert stats.reported_area_is_bbox == 1
+    assert abs(r.area_px - 50) <= 6                        # pixel-centre count of the diamond
 
 
 # ---------------------------------------------------------------- with SAR and label rasters

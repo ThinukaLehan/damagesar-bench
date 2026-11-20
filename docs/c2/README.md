@@ -40,3 +40,25 @@ then copied here as `docs/c2/sar_metadata_by_event.csv`.
 Status per event: **geometry-ready** (incidence, look direction and orbit all found),
 **match-only** (scene found, a field missing), **dilated-only** (no scene; C2 uses dilated
 footprints). Only SAR metadata is read, never labels, so confirmatory events are allowed.
+
+## First run (c06, 10 Nov 2026): provisional
+
+| Status | Events |
+|---|---|
+| Full geometry found (incidence angle, look direction, orbit) | Haiti, La Palma, Marshall, Hawaii, Libya |
+| No scene found in the public catalogs | Beirut, Bata, Congo, Ukraine, Myanmar, Morocco, Mexico, Noto |
+| Wrongly labelled geometry-ready (best scene covers 0.08% of the area) | Türkiye |
+
+What the run showed:
+- Capella's STAC catalog has 9,999 items, all from 2021 onwards, so Beirut (Aug 2020) cannot match. Several other
+  events (Bata, Congo, Ukraine, Myanmar, Morocco, Mexico) are not in it either; BRIGHT may have used scenes
+  outside the public catalog.
+- Umbra's STAC catalog starts in 2024 (28 items reached). Umbra keeps older collects, including Türkiye 2023 and
+  Noto (Jan 2024), in per-event folders outside the catalog; the next c06 version searches those folders.
+- Labelling bug: the status used the best candidate even when it barely overlapped the event. Fix: an event needs a
+  scene covering at least half its area to count as matched (a correction made after seeing results; logged).
+- Haiti, La Palma and Hawaii each have several good scenes with different geometry; which one BRIGHT used is open.
+
+Consequence for C2: of the 6 confirmatory events only Haiti has full geometry so far, and no building-height source
+has been found, so the height-based shift (option A) cannot cover the confirmatory set. Proposed to the supervisor
+(briefing, question 7): image matching (option B) becomes C2's main route.
