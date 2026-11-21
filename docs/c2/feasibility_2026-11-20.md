@@ -36,3 +36,23 @@ Gate 1 can therefore fail for a reason that is about the data (no offset to corr
 Recommendation: 3, with the gate restricted as in 2. The per-tile measurement is now in the package
 (`src/damagesar_bench/c2_offsets.py`, notebook `c07_c2_offsets`, CPU): per-event median offset in metres and
 tokens, share of tiles beating the permutation null, and direction consistency. Whatever is chosen is written into `docs/preregistration.md` §6 before Gate 1 is run.
+
+## Update 22 Nov 2026: measured per tile (c07, repository code)
+
+| Event | Tiles | Confident tiles (peak_z ≥ 3) | Median offset, confident tiles | In tokens | Beats the null | Direction R |
+|---|---|---|---|---|---|---|
+| Congo | 92 | 89% | 7.5 m | 1.41 | **73%** | 0.84 |
+| Libya | 98 | 38% | 11.3 m | 2.02 | **48%** | 0.86 |
+| Beirut | 111 | 15% | 17.2 m | 2.15 | 33% | 0.77 |
+| La Palma | 603 | 27% | 11.1 m | 2.30 | 29% | 0.36 |
+| Hawaii | 56 | 80% | 4.2 m | 0.75 | 12.5% | 0.52 |
+| Marshall | 66 | 92% | 2.4 m | 0.25 | 0% | 0.63 |
+
+Reading: the repository measurement agrees with the 31 Oct audit. Congo and Libya have real offsets of about
+1.4–2 tokens in one consistent direction, so a single per-event shift (or the projected footprint) could move the
+pooling region onto the signal. Beirut's offset is large but clear in only a minority of tiles. Hawaii and
+Marshall show no offset beyond the null (well under one token: the footprints already line up), and La Palma's
+is weak with no consistent direction.
+
+For Gate 1 this supports option 2 or 3: decide C2 on the events where an offset exists (Congo, Libya, and
+Beirut if the supervisor agrees), fixed now, before any C2 AUROC is computed.

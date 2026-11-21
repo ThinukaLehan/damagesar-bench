@@ -29,7 +29,7 @@ Last updated: 14 Nov 2026
 - [x] C2 feasibility note (`docs/c2/feasibility_2026-11-20.md`, 20 Nov): Hawaii and La Palma have no measurable offset → Gate 1 rule to settle before any C2 AUROC — **Claude**
 - [ ] Decide the Gate 1 rule (keep / offset events only / image-matched shift) — **Sup**
 - [x] Per-tile footprint-vs-SAR offset code + c07 notebook (21 Nov) — **Claude**
-- [ ] Run **c07_c2_offsets** (CPU, ~15 min) — **You**
+- [x] Run **c07_c2_offsets** (CPU) — 22 Nov; results in `docs/c2/feasibility_2026-11-20.md`
 - [ ] Rerun **c06** after the c06-fix PR — **You**
 - [ ] Add the 31 Oct audit notebook to the repo so it can be tagged `audit-2026-10-31` — **You** share it, **Claude** adds it
 

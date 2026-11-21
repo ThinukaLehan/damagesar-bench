@@ -98,3 +98,16 @@ def test_errors_and_environment(tmp_path):
         load_expected(p)
     env = environment()
     assert env["python"] and "numpy" in env and "transformers" in env
+
+
+def test_offsets_are_collected_and_checked():
+    exp = load_expected(ROOT / "paper" / "expected_values.yaml")
+    off_ids = [i for i in exp["id"] if i.startswith("offsets.")]
+    assert len(off_ids) == 36                                         # 6 events x 6 numbers
+    osum = pd.DataFrame([{"event": "congo", "median_offset_m": 7.880029163, "median_offset_confident_m": 7.54209715,
+                          "median_offset_tokens": 1.41421955, "share_confident": 0.8913043478,
+                          "share_beats_null": 0.7282608696, "direction_R": 0.8437229919}])
+    got = collect_actual(offsets=osum)
+    assert got["offsets.share_beats_null.congo"] == 0.728
+    rep = compare(exp[exp["id"].str.endswith(".congo") & exp["id"].str.startswith("offsets.")], got)
+    assert (rep["status"] == "PASS").all()
