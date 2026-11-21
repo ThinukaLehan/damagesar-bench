@@ -27,6 +27,7 @@ from pathlib import Path
 import pandas as pd
 
 from . import __version__
+from .reproduce import environment
 from .config import REPO_ROOT, EventsConfig
 from .data.events import labels_unlocked
 from .probe.logistic import run_probes
@@ -175,6 +176,7 @@ def run_benchmark(
         "comparison_events": ev_list, "settings": [f"{e}/{p}" for e, p in settings],
         "comparisons": [c.label for c in comparisons],
         "inputs": {str(p): sha256(p) for p in feature_files},
+        "environment": environment(),
     }
     (out / "run_manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     write_report(out)
