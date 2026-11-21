@@ -4,6 +4,11 @@ Methods (pre-registered names):
 * ``outline``      the footprint polygon as drawn (BRIGHT instance labels);
 * ``dilated:<m>``  the footprint grown by <m> metres on the ground, e.g. ``dilated:3``
                    (FYP Master §7: 3 m). Projected pooling (C2) is added later.
+* ``ring:<m>``     neighbourhood control (RQ4): the area within <m> metres of the footprint, **minus every
+                   token that contains a building pixel**, so the vector carries the surroundings but none
+                   of the building itself. If no such token is left (the ring stays inside the building's
+                   tokens), the 8 tokens around the building's centre token are used and the row is flagged
+                   (``pool_pixels`` = 0).
 
 How a building's vector is formed (ADR 0001 leaning: area-weighted pooling):
 1. Rasterise the polygon on the tile's native pixel grid (pixel centres, same rule as the
@@ -56,7 +61,7 @@ class TileGeometry:
 
 @dataclass(frozen=True)
 class Method:
-    kind: str            # "outline" | "dilated"
+    kind: str            # "outline" | "dilated" | "ring"
     metres: float = 0.0
 
     @classmethod
@@ -68,13 +73,18 @@ class Method:
             if not m > 0:
                 raise PoolingError("dilation must be > 0 metres")
             return cls("dilated", m)
-        raise PoolingError(f"unknown pooling {text!r} (use 'outline' or 'dilated:<metres>')")
+        if text.startswith("ring:"):
+            m = float(text.split(":", 1)[1])
+            if not m > 0:
+                raise PoolingError("ring width must be > 0 metres")
+            return cls("ring", m)
+        raise PoolingError(f"unknown pooling {text!r} (use 'outline', 'dilated:<metres>' or 'ring:<metres>')")
 
     @property
     def name(self) -> str:
         if self.kind == "outline":
             return "outline"
-        return f"dilated{self.metres:g}m"
+        return f"{self.kind}{self.metres:g}m"
 
 
 def building_mask(polys: list[list[float]], geom: TileGeometry, dilate_m: float = 0.0) -> tuple[np.ndarray, int, int]:
@@ -101,25 +111,66 @@ def _bbox_centre(polys) -> tuple[float, float]:
     return (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
 
 
+def _token_index(rr: np.ndarray, cc: np.ndarray, geom: TileGeometry, h: int, w: int) -> np.ndarray:
+    tr = np.floor((rr + 0.5) * h / geom.height).astype(int)
+    tc = np.floor((cc + 0.5) * w / geom.width).astype(int)
+    return tr * w + tc
+
+
+def _centre_token(polys, geom: TileGeometry, h: int, w: int) -> tuple[int, int]:
+    x, y = _bbox_centre(polys)
+    tr = min(max(int(math.floor(y * h / geom.height)), 0), h - 1)
+    tc = min(max(int(math.floor(x * w / geom.width)), 0), w - 1)
+    return tr, tc
+
+
+def _weighted_mean(tokens: np.ndarray, flat: np.ndarray) -> np.ndarray:
+    h, w, _ = tokens.shape
+    idx, counts = np.unique(flat, return_counts=True)
+    vecs = tokens.reshape(h * w, -1)[idx].astype(np.float64)
+    return (vecs * counts[:, None]).sum(axis=0) / counts.sum()
+
+
 def pool_building(tokens: np.ndarray, polys: list[list[float]], geom: TileGeometry,
                   method: Method) -> tuple[np.ndarray, int]:
-    """Area-weighted token mean for one building; returns (vector, building pixel count)."""
+    """Area-weighted token mean for one building; returns (vector, pooled pixel count)."""
     if tokens.ndim != 3:
         raise PoolingError("tokens must have shape (rows, cols, dim)")
     h, w, _ = tokens.shape
+    if method.kind == "ring":
+        return _pool_ring(tokens, polys, geom, method.metres)
     mask, r0, c0 = building_mask(polys, geom, method.metres if method.kind == "dilated" else 0.0)
     rr, cc = np.nonzero(mask)
     if rr.size == 0:
-        x, y = _bbox_centre(polys)
-        tr = min(max(int(math.floor(y * h / geom.height)), 0), h - 1)
-        tc = min(max(int(math.floor(x * w / geom.width)), 0), w - 1)
+        tr, tc = _centre_token(polys, geom, h, w)
         return tokens[tr, tc].astype(np.float64), 0
-    tr = np.floor((rr + r0 + 0.5) * h / geom.height).astype(int)
-    tc = np.floor((cc + c0 + 0.5) * w / geom.width).astype(int)
-    flat = tr * w + tc
-    idx, counts = np.unique(flat, return_counts=True)
-    vecs = tokens.reshape(h * w, -1)[idx].astype(np.float64)
-    return (vecs * counts[:, None]).sum(axis=0) / counts.sum(), int(rr.size)
+    return _weighted_mean(tokens, _token_index(rr + r0, cc + c0, geom, h, w)), int(rr.size)
+
+
+def _pool_ring(tokens: np.ndarray, polys, geom: TileGeometry, metres: float) -> tuple[np.ndarray, int]:
+    """Surroundings within ``metres`` of the footprint, excluding every token that holds a building pixel."""
+    h, w, _ = tokens.shape
+    core, r0, c0 = building_mask(polys, geom, 0.0)
+    rr, cc = np.nonzero(core)
+    if rr.size:
+        building_tokens = set(np.unique(_token_index(rr + r0, cc + c0, geom, h, w)).tolist())
+    else:
+        tr, tc = _centre_token(polys, geom, h, w)
+        building_tokens = {tr * w + tc}
+    big, top, left = building_mask(polys, geom, metres)
+    br, bc = np.nonzero(big)
+    flat = _token_index(br + top, bc + left, geom, h, w) if br.size else np.empty(0, dtype=int)
+    keep = ~np.isin(flat, list(building_tokens))
+    if keep.any():
+        return _weighted_mean(tokens, flat[keep]), int(keep.sum())
+    # Fallback: the 8 tokens around the building's centre token (equal weights).
+    tr, tc = _centre_token(polys, geom, h, w)
+    nb = [(r, c) for r in range(tr - 1, tr + 2) for c in range(tc - 1, tc + 2)
+          if (r, c) != (tr, tc) and 0 <= r < h and 0 <= c < w and r * w + c not in building_tokens]
+    if not nb:
+        nb = [(r, c) for r in range(tr - 1, tr + 2) for c in range(tc - 1, tc + 2)
+              if (r, c) != (tr, tc) and 0 <= r < h and 0 <= c < w]
+    return np.mean([tokens[r, c].astype(np.float64) for r, c in nb], axis=0), 0
 
 
 def pool_features(

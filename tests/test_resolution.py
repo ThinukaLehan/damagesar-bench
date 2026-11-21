@@ -70,3 +70,26 @@ def test_features_feed_bench_run(tmp_path, events_cfg, before_freeze):
     out = run_benchmark([fa, fn], comps, events_cfg, tmp_path / "run", today=before_freeze, n_boot=100)
     c = pd.read_csv(out / "comparisons.csv").iloc[0]
     assert c["label"] == "0.3m vs native (outline)" and c["estimate"] > 0 and c["strength"] == "exploratory"
+
+
+def test_p03_extraction_path_ring_and_image_free(tmp_path, bright_root, events_cfg, before_freeze):
+    # The p03 notebook's path on synthetic BRIGHT tiles: ring features at native, image-free control.
+    from damagesar_bench.controls.imagefree import image_free_features
+    from damagesar_bench.encoders.extract import write_features
+    b = buildings_for(bright_root, events_cfg)
+    reader = lambda t: read_bright_tile(bright_root, t)  # noqa: E731
+    feats, _ = extract_at_resolutions(b, reader, CountingEncoder(), ["outline", "ring:10"], [None],
+                                      tmp_path / "f", events_cfg, before_freeze)
+    assert sorted(feats["pooling"].unique()) == ["outline", "ring10m"]
+    assert set(feats["encoder"]) == {"counting@native"}
+    assert feats["pool_pixels"].ge(0).all()
+    import json as _json
+    bb = b[b["role"] != "confirmatory"].copy()
+    xy = bb["segmentation_px"].map(lambda t: _json.loads(t)[0])        # as in the p01 table: COCO bbox + pixel size
+    bb["bbox_x"] = xy.map(lambda p: min(p[0::2])); bb["bbox_y"] = xy.map(lambda p: min(p[1::2]))
+    bb["bbox_w"] = xy.map(lambda p: max(p[0::2]) - min(p[0::2])); bb["bbox_h"] = xy.map(lambda p: max(p[1::2]) - min(p[1::2]))
+    bb["res_m"] = 0.5
+    free = image_free_features(bb, events_cfg, before_freeze)
+    assert len(free) == len(feats[feats.pooling == "outline"])     # one row per kept (unlocked) building
+    p = write_features(pd.concat([feats, free], ignore_index=True), tmp_path / "all.parquet")
+    assert set(pd.read_parquet(p)["encoder"]) == {"counting@native", "imagefree"}

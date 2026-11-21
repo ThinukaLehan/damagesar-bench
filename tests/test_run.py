@@ -104,3 +104,16 @@ def test_report_rebuild_and_cli(tmp_path, events_cfg, capsys):
     assert main(["report", "--run", str(tmp_path / "run")]) == 0
     assert (tmp_path / "run" / "report.md").exists()
     assert write_report(tmp_path / "run").read_text().count("| enc_") >= 4
+
+
+def test_only_compared_skips_unused_settings(tmp_path, events_cfg, before_freeze):
+    files = write_features(tmp_path, events_cfg)
+    extra = synth(events_cfg, today_locked=True, signal=1.0, encoder="enc_c")
+    pc = tmp_path / "c.parquet"
+    extra.to_parquet(pc, index=False)
+    out = run_benchmark(files + [pc], [ComparisonSpec.parse("enc_a/outline:enc_b/outline")], events_cfg,
+                        tmp_path / "run", today=before_freeze, n_boot=50, only_compared=True)
+    m = pd.read_csv(out / "event_metrics.csv")
+    assert set(m["encoder"]) == {"enc_a", "enc_b"}             # enc_c was in the files but not probed
+    man = json.loads((out / "run_manifest.json").read_text())
+    assert man["settings"] == ["enc_a/outline", "enc_b/outline"]
