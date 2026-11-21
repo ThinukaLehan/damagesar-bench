@@ -1,0 +1,96 @@
+# Every number the draft paper reports, with where it comes from and how closely a rerun must match.
+# Checked by src/damagesar_bench/reproduce.py (notebook: notebooks/reproduce/r01_reproduce_paper.ipynb).
+#
+# kind:  exact    -> must be equal
+#        abs      -> |got - expected| <= tol
+#        min      -> got >= expected
+#        text     -> string equal (verdicts)
+#        info     -> reported, not checked (no value recorded yet)
+# Numbers that need confirmatory labels (locked until 10 Jan 2027) are NOT here; they are checked after the freeze.
+# Values set from the runs of 14 Nov (p01, c01) and 20 Nov (p02 + p02b), main @ 7398946.
+
+data:
+  tiles.total:                {expected: 4246,   kind: exact, paper: "III-A; VI-A"}
+  tiles.excluded_nodata:      {expected: 20,     kind: exact, paper: "III-C; VI-A"}
+  tiles.problems:             {expected: 0,      kind: exact, paper: "VI-A"}
+  buildings.total:            {expected: 244976, kind: exact, paper: "Abstract; III-C"}
+  buildings.kept:             {expected: 242842, kind: exact, paper: "III-C"}
+  buildings.excluded.building_nodata: {expected: 828, kind: exact, paper: "III-C"}
+  buildings.excluded.tile_nodata:     {expected: 753, kind: exact, paper: "III-C"}
+  buildings.excluded.empty_footprint: {expected: 553, kind: exact, paper: "III-C"}
+  raster_agreement.min_unlocked:      {expected: 0.999, kind: min, paper: "III-C (99.9-100%)"}
+  area_field_is_bbox.share:           {expected: null,  kind: info, paper: "III-C; abstract (bounding-box area); value recorded by the first reproduce run"}
+  positives.beirut:   {expected: 653,  kind: exact, paper: "III-C; Table III"}
+  positives.congo:    {expected: 1505, kind: exact, paper: "III-C; Table III"}
+  positives.hawaii:   {expected: 2511, kind: exact, paper: "III-C; Table III"}
+  positives.la_palma: {expected: 5596, kind: exact, paper: "III-C; Table III"}
+  positives.libya:    {expected: 3346, kind: exact, paper: "III-C; Table III"}
+  positives.marshall: {expected: 696,  kind: exact, paper: "III-C"}
+  kept.beirut:   {expected: 20859, kind: exact, paper: "Table III"}
+  kept.congo:    {expected: 16531, kind: exact, paper: "Table III"}
+  kept.hawaii:   {expected: 3532,  kind: exact, paper: "Table III"}
+  kept.la_palma: {expected: 29792, kind: exact, paper: "Table III"}
+  kept.libya:    {expected: 9573,  kind: exact, paper: "Table III"}
+  prevalence.min_unlocked_pct: {expected: 3.1,  kind: abs, tol: 0.05, paper: "I; III-C (unlocked events)"}
+  prevalence.max_unlocked_pct: {expected: 71.1, kind: abs, tol: 0.05, paper: "I; III-C (unlocked events)"}
+
+# Table II: % of kept buildings covering fewer than 4 ViT/16 tokens (geometry only; allowed before the freeze)
+tokens:
+  lt4.native.beirut:   {expected: 41.9, kind: abs, tol: 0.05}
+  lt4.native.congo:    {expected: 95.5, kind: abs, tol: 0.05}
+  lt4.native.hawaii:   {expected: 32.4, kind: abs, tol: 0.05}
+  lt4.native.la_palma: {expected: 69.8, kind: abs, tol: 0.05}
+  lt4.native.libya:    {expected: 28.4, kind: abs, tol: 0.05}
+  lt4.native.marshall: {expected: 91.4, kind: abs, tol: 0.05}
+  lt4.native.bata:     {expected: 84.0, kind: abs, tol: 0.05}
+  lt4.native.haiti:    {expected: 88.8, kind: abs, tol: 0.05}
+  lt4.native.morocco:  {expected: 33.2, kind: abs, tol: 0.05}
+  lt4.native.noto:     {expected: 90.6, kind: abs, tol: 0.05}
+  lt4.native.turkey:   {expected: 26.0, kind: abs, tol: 0.05}
+  lt4.target.beirut:   {expected: 13.3, kind: abs, tol: 0.05}
+  lt4.target.congo:    {expected: 91.8, kind: abs, tol: 0.05}
+  lt4.target.hawaii:   {expected: 24.5, kind: abs, tol: 0.05}
+  lt4.target.la_palma: {expected: 69.8, kind: abs, tol: 0.05}
+  lt4.target.libya:    {expected: 20.4, kind: abs, tol: 0.05}
+  lt4.target.marshall: {expected: 22.6, kind: abs, tol: 0.05}
+  lt4.target.bata:     {expected: 30.7, kind: abs, tol: 0.05}
+  lt4.target.haiti:    {expected: 53.9, kind: abs, tol: 0.05}
+  lt4.target.morocco:  {expected: 32.1, kind: abs, tol: 0.05}
+  lt4.target.noto:     {expected: 51.4, kind: abs, tol: 0.05}
+  lt4.target.turkey:   {expected: 22.4, kind: abs, tol: 0.05}
+
+# Table III: building-level AUROC per held-out development event (DINOv3 ViT-B/16, frozen, linear probe).
+# Features are computed in fp16 on a GPU, which is not bit-exact between runs: tolerance 0.005.
+auroc:
+  native.outline.beirut:     {expected: 0.646, kind: abs, tol: 0.005}
+  native.outline.congo:      {expected: 0.849, kind: abs, tol: 0.005}
+  native.outline.hawaii:     {expected: 0.504, kind: abs, tol: 0.005}
+  native.outline.la_palma:   {expected: 0.604, kind: abs, tol: 0.005}
+  native.outline.libya:      {expected: 0.498, kind: abs, tol: 0.005}
+  native.dilated3m.beirut:   {expected: 0.651, kind: abs, tol: 0.005}
+  native.dilated3m.congo:    {expected: 0.853, kind: abs, tol: 0.005}
+  native.dilated3m.hawaii:   {expected: 0.501, kind: abs, tol: 0.005}
+  native.dilated3m.la_palma: {expected: 0.605, kind: abs, tol: 0.005}
+  native.dilated3m.libya:    {expected: 0.478, kind: abs, tol: 0.005}
+  0.3m.outline.beirut:       {expected: 0.531, kind: abs, tol: 0.005}
+  0.3m.outline.congo:        {expected: 0.762, kind: abs, tol: 0.005}
+  0.3m.outline.hawaii:       {expected: 0.576, kind: abs, tol: 0.005}
+  0.3m.outline.la_palma:     {expected: 0.598, kind: abs, tol: 0.005}
+  0.3m.outline.libya:        {expected: 0.486, kind: abs, tol: 0.005}
+  0.3m.dilated3m.beirut:     {expected: 0.543, kind: abs, tol: 0.005}
+  0.3m.dilated3m.congo:      {expected: 0.774, kind: abs, tol: 0.005}
+  0.3m.dilated3m.hawaii:     {expected: 0.566, kind: abs, tol: 0.005}
+  0.3m.dilated3m.la_palma:   {expected: 0.598, kind: abs, tol: 0.005}
+  0.3m.dilated3m.libya:      {expected: 0.497, kind: abs, tol: 0.005}
+  native.outline.mean5:      {expected: 0.620, kind: abs, tol: 0.005}
+
+# Table IV: event-level comparisons (5 events, 95% t-interval, 4 df)
+comparisons:
+  "0.3m vs native (outline)":      {estimate: -0.030, lower: -0.122, upper: 0.062, verdict: "Inconclusive"}
+  "0.3m vs native (dilated3m)":    {estimate: -0.022, lower: -0.110, upper: 0.066, verdict: "Inconclusive"}
+  "dilated3m vs outline (native)": {estimate: -0.003, lower: -0.015, upper: 0.010, verdict: "Not a worthwhile gain"}
+  "dilated3m vs outline (0.3m)":   {estimate: 0.005,  lower: -0.008, upper: 0.018, verdict: "Not a worthwhile gain"}
+comparison_tol: {estimate: 0.005, bounds: 0.01}
+
+probes:
+  all_converged: {expected: true, kind: exact}

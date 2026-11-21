@@ -9,6 +9,8 @@ are dropped, so the output is the patch-token grid only.
 
 from __future__ import annotations
 
+import os
+
 import numpy as np
 
 from .base import Encoder, EncoderError, register
@@ -33,6 +35,7 @@ def tokens_to_grid(hidden: np.ndarray, h: int, w: int) -> np.ndarray:
 
 class HFViT(Encoder):
     model_id = ""
+    revision: str | None = None   # Hugging Face commit to load; None = latest (the run records which it got)
     needs_interpolation = False   # True for models with fixed 224 px position embeddings
 
     def __init__(self, device: str | None = None, fp16: bool = True):
@@ -44,7 +47,10 @@ class HFViT(Encoder):
         self._torch = torch
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.dtype = torch.float16 if (fp16 and self.device == "cuda") else torch.float32
-        self.model = AutoModel.from_pretrained(self.model_id, torch_dtype=self.dtype).to(self.device).eval()
+        rev = os.environ.get(f"DSB_REVISION_{self.name.upper()}") or self.revision
+        self.model = AutoModel.from_pretrained(self.model_id, torch_dtype=self.dtype, revision=rev).to(self.device).eval()
+        # The exact weights used: the Hugging Face commit the files came from (recorded for reproducibility).
+        self.weights_revision = getattr(self.model.config, "_commit_hash", None) or rev
         self.dim = int(self.model.config.hidden_size)
         self.patch_px = int(self.model.config.patch_size)
         self.mean = np.array(IMAGENET_MEAN, dtype=np.float32)[:, None, None]

@@ -41,6 +41,10 @@ bench validate --root /content/bright --out /content/drive/MyDrive/DamageSAR-Ben
 bench audit --out /content/drive/MyDrive/DamageSAR-Bench/01_data/derived
 ```
 
+## Reproducing the paper
+
+Every number in the draft paper is listed in `paper/expected_values.yaml`; `notebooks/reproduce/r01_reproduce_paper.ipynb` rebuilds all of them from the public data in a fresh Colab session and prints PASS/FAIL for each. See [`docs/REPRODUCE.md`](docs/REPRODUCE.md).
+
 ## Pre-registration guard
 
 Event roles live in [`configs/events.yaml`](configs/events.yaml): 6 confirmatory, 5 development, 3 secondary events. Until the plan freeze (**10 Jan 2027**), the code refuses to read labels of confirmatory events, and validation reports only their schema, not class counts. Before the freeze, probes train on development and secondary events only. See [`docs/preregistration.md`](docs/preregistration.md).
