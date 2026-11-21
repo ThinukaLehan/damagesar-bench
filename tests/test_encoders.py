@@ -214,3 +214,30 @@ def test_cli_extract(tmp_path, bright_root, events_cfg, capsys):
     assert "confirmatory tiles skipped" in out
     feats = pd.read_parquet(tmp_path / "feat" / "features.parquet")
     assert set(feats["pooling"]) == {"outline", "dilated3m"} and set(feats["encoder"]) == {"patchstats"}
+
+
+def test_weights_revision_prefers_config_commit():
+    from damagesar_bench.encoders.hf import resolve_weights_revision
+
+    class Cfg:
+        _commit_hash = "abc123"
+
+    assert resolve_weights_revision("org/model", None, Cfg()) == "abc123"
+
+
+def test_weights_revision_falls_back_to_cache_snapshot(tmp_path):
+    pytest.importorskip("huggingface_hub")
+    from damagesar_bench.encoders.hf import resolve_weights_revision
+
+    repo = tmp_path / "models--org--model"
+    snap = repo / "snapshots" / "deadbeef"
+    snap.mkdir(parents=True)
+    (snap / "config.json").write_text("{}")
+    (repo / "refs").mkdir()
+    (repo / "refs" / "main").write_text("deadbeef")
+
+    class Cfg:
+        _commit_hash = None
+
+    assert resolve_weights_revision("org/model", None, Cfg(), cache_dir=tmp_path) == "deadbeef"
+    assert resolve_weights_revision("org/other", "v1", Cfg(), cache_dir=tmp_path) == "v1"
