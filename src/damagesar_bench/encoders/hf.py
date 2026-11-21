@@ -10,6 +10,7 @@ are dropped, so the output is the patch-token grid only.
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import numpy as np
 
@@ -33,6 +34,28 @@ def tokens_to_grid(hidden: np.ndarray, h: int, w: int) -> np.ndarray:
     return hidden[0, n_prefix:].reshape(h, w, hidden.shape[2])
 
 
+def resolve_weights_revision(model_id: str, requested: str | None, config=None, cache_dir=None) -> str | None:
+    """The Hugging Face commit the weights were loaded from.
+
+    Newer transformers versions no longer set ``config._commit_hash``, so fall back to the local cache:
+    the cached files live under ``snapshots/<commit>/``. No network call. Returns the requested
+    revision (or None) only if neither source has it.
+    """
+    commit = getattr(config, "_commit_hash", None) if config is not None else None
+    if commit:
+        return commit
+    try:
+        from huggingface_hub import try_to_load_from_cache
+        path = try_to_load_from_cache(model_id, "config.json", revision=requested, cache_dir=cache_dir)
+    except Exception:  # pragma: no cover - depends on the environment
+        path = None
+    if isinstance(path, str):
+        parts = Path(path).parts
+        if "snapshots" in parts:
+            return parts[parts.index("snapshots") + 1]
+    return requested
+
+
 class HFViT(Encoder):
     model_id = ""
     revision: str | None = None   # Hugging Face commit to load; None = latest (the run records which it got)
@@ -50,7 +73,7 @@ class HFViT(Encoder):
         rev = os.environ.get(f"DSB_REVISION_{self.name.upper()}") or self.revision
         self.model = AutoModel.from_pretrained(self.model_id, torch_dtype=self.dtype, revision=rev).to(self.device).eval()
         # The exact weights used: the Hugging Face commit the files came from (recorded for reproducibility).
-        self.weights_revision = getattr(self.model.config, "_commit_hash", None) or rev
+        self.weights_revision = resolve_weights_revision(self.model_id, rev, self.model.config)
         self.dim = int(self.model.config.hidden_size)
         self.patch_px = int(self.model.config.patch_size)
         self.mean = np.array(IMAGENET_MEAN, dtype=np.float32)[:, None, None]
