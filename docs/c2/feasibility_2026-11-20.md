@@ -33,6 +33,6 @@ Gate 1 can therefore fail for a reason that is about the data (no offset to corr
    match is confident; buildings in tiles without a confident match keep outline pooling. This also covers events
    with no viewing geometry (Beirut, Congo, and most confirmatory events).
 
-Recommendation: 3, with the gate restricted as in 2. It needs a small CPU notebook that re-measures the
-footprint-vs-SAR offset per development tile (the 31 Oct cross-correlation, now in the repo, with per-event
-magnitudes recorded). Whatever is chosen is written into `docs/preregistration.md` §6 before Gate 1 is run.
+Recommendation: 3, with the gate restricted as in 2. The per-tile measurement is now in the package
+(`src/damagesar_bench/c2_offsets.py`, notebook `c07_c2_offsets`, CPU): per-event median offset in metres and
+tokens, share of tiles beating the permutation null, and direction consistency. Whatever is chosen is written into `docs/preregistration.md` §6 before Gate 1 is run.

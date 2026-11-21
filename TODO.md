@@ -28,7 +28,8 @@ Last updated: 14 Nov 2026
 - [ ] Run **p03_controls_and_imagenet_v0** (T4, ~45 min): image-free + ring controls (RQ4) and ImageNet ViT-B baseline (RQ1 preview) — **You** (after its PR)
 - [x] C2 feasibility note (`docs/c2/feasibility_2026-11-20.md`, 20 Nov): Hawaii and La Palma have no measurable offset → Gate 1 rule to settle before any C2 AUROC — **Claude**
 - [ ] Decide the Gate 1 rule (keep / offset events only / image-matched shift) — **Sup**
-- [ ] CPU notebook: per-tile footprint-vs-SAR offset on development events (31 Oct cross-correlation in the repo) — **Claude**
+- [x] Per-tile footprint-vs-SAR offset code + c07 notebook (21 Nov) — **Claude**
+- [ ] Run **c07_c2_offsets** (CPU, ~15 min) — **You**
 - [ ] Rerun **c06** after the c06-fix PR — **You**
 - [ ] Add the 31 Oct audit notebook to the repo so it can be tagged `audit-2026-10-31` — **You** share it, **Claude** adds it
 
