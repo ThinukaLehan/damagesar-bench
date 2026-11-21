@@ -47,7 +47,18 @@ def load_expected(path: str | Path) -> pd.DataFrame:
 
 
 def _setting_key(encoder: str) -> str:
-    return encoder.split("@", 1)[1] if "@" in encoder else encoder
+    """Id prefix for an encoder setting.
+
+    DINOv3 (the paper's main encoder) keeps the short ids of Tables III-IV (``native``, ``0.3m``); any other
+    encoder is prefixed with its short name (``imagenet.native``); a setting without a resolution is its name
+    (``imagefree``).
+    """
+    if "@" not in encoder:
+        return encoder
+    name, res = encoder.split("@", 1)
+    if name.startswith("dinov3"):
+        return res
+    return f"{name.split('_', 1)[0]}.{res}"
 
 
 def collect_actual(tile_summary: pd.DataFrame | None = None, buildings: pd.DataFrame | None = None,
@@ -95,9 +106,9 @@ def collect_actual(tile_summary: pd.DataFrame | None = None, buildings: pd.DataF
         m = event_metrics
         for _, r in m.iterrows():
             got[f"auroc.{_setting_key(r['encoder'])}.{r['pooling']}.{r['event']}"] = round(float(r["auroc"]), 3)
-        nat = m[(m["encoder"].str.endswith("@native")) & (m["pooling"] == "outline")]
-        if len(nat):
-            got["auroc.native.outline.mean5"] = round(float(nat["auroc"].mean()), 3)
+        dev = m[m["role"] == "development"] if "role" in m.columns else m
+        for (enc, pool), g in dev.groupby(["encoder", "pooling"]):
+            got[f"auroc.{_setting_key(enc)}.{pool}.mean5"] = round(float(g["auroc"].mean()), 3)
     if comparisons is not None:
         for _, r in comparisons.iterrows():
             for col in ("estimate", "lower", "upper"):

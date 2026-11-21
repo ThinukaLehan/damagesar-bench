@@ -3,7 +3,7 @@
 Every number in the draft paper (`paper/`) is listed in **`paper/expected_values.yaml`** with the run that
 produces it and how closely a rerun must match. One notebook rebuilds all of them from the public data:
 
-**`notebooks/reproduce/r01_reproduce_paper.ipynb`** (Colab, T4 GPU, about 60–75 minutes)
+**`notebooks/reproduce/r01_reproduce_paper.ipynb`** (Colab, T4 GPU, about 90–100 minutes)
 
 1. Start a **fresh** session (Runtime → Disconnect and delete runtime), then Runtime → Change runtime type → T4 GPU.
 2. Colab Secrets: `GH_TOKEN` (read access to this repository while it is private) and `HF_TOKEN`
@@ -20,6 +20,8 @@ What it does, from scratch (nothing is read from earlier runs):
 | Build the building table | 244,976 buildings, 242,842 kept, exclusions, positives per event, prevalence range, Table II | `data/buildings.py` |
 | Extract DINOv3 ViT-B/16 features (native, 0.3 m; outline, dilated 3 m) | — | `encoders/`, `pooling/`, `experiments/resolution.py` |
 | Benchmark | Tables III and IV | `run.py`, `probe/`, `stats/` |
+| Footprint-to-SAR offsets per tile (CPU, seed 0) | Section VI-A offsets table | `c2_offsets.py` |
+| Controls + ImageNet baseline: DINOv3 ring 10 m, ImageNet outline / dilated 3 m / ring 10 m, image-free control | Section VI-D | `controls/`, `pooling/footprint.py`, `run.py` |
 | Compare | all of the above | `reproduce.py` |
 
 ## Tolerances
@@ -29,6 +31,7 @@ What it does, from scratch (nothing is read from earlier runs):
 * AUROC: ±0.005. Encoders run in fp16 on a GPU, which is not bit-exact between runs or GPU types; probes,
   folds and the bootstrap (seed 0) are deterministic given the features.
 * Comparison estimates ±0.005, interval bounds ±0.01.
+* Offsets: medians ±0.05 m (tokens ±0.01), shares and direction consistency ±0.002.
 
 ## Recorded environment
 
@@ -41,9 +44,7 @@ To load a specific weights revision, set `DSB_REVISION_DINOV3_VITB16=<commit>` b
 
 Numbers that need confirmatory labels (pixel class shares over all 14 events, class counts and prevalence of the
 confirmatory events, all confirmatory results) are locked until the plan freeze and are not in the file; they
-are added, and checked the same way, after the freeze. Footprint-to-SAR offsets are reproduced by
-`notebooks/checks/c07_c2_offsets.ipynb` and will be added to the file once their numbers replace the
-31 Oct audit's in the paper.
+are added, and checked the same way, after the freeze.
 
 ## Data licences
 

@@ -84,12 +84,53 @@ auroc:
   0.3m.dilated3m.libya:      {expected: 0.497, kind: abs, tol: 0.005}
   native.outline.mean5:      {expected: 0.620, kind: abs, tol: 0.005}
 
+# p03 (22 Nov 2026, main @ b83f302): controls and the ImageNet baseline, native resolution, development events.
+# Image-free control (building size and crowding, no pixels) and 10 m ring (surroundings only, never a building token).
+# r01 step 5c rebuilds these. Same fp16 tolerance as Table III.
+  native.ring10m.beirut: {expected: 0.654, kind: abs, tol: 0.005}
+  native.ring10m.congo: {expected: 0.853, kind: abs, tol: 0.005}
+  native.ring10m.hawaii: {expected: 0.549, kind: abs, tol: 0.005}
+  native.ring10m.la_palma: {expected: 0.533, kind: abs, tol: 0.005}
+  native.ring10m.libya: {expected: 0.503, kind: abs, tol: 0.005}
+  native.ring10m.mean5: {expected: 0.618, kind: abs, tol: 0.005}
+  imagenet.native.outline.beirut: {expected: 0.465, kind: abs, tol: 0.005}
+  imagenet.native.outline.congo: {expected: 0.781, kind: abs, tol: 0.005}
+  imagenet.native.outline.hawaii: {expected: 0.716, kind: abs, tol: 0.005}
+  imagenet.native.outline.la_palma: {expected: 0.755, kind: abs, tol: 0.005}
+  imagenet.native.outline.libya: {expected: 0.600, kind: abs, tol: 0.005}
+  imagenet.native.outline.mean5: {expected: 0.663, kind: abs, tol: 0.005}
+  imagenet.native.dilated3m.beirut: {expected: 0.451, kind: abs, tol: 0.005}
+  imagenet.native.dilated3m.congo: {expected: 0.821, kind: abs, tol: 0.005}
+  imagenet.native.dilated3m.hawaii: {expected: 0.710, kind: abs, tol: 0.005}
+  imagenet.native.dilated3m.la_palma: {expected: 0.780, kind: abs, tol: 0.005}
+  imagenet.native.dilated3m.libya: {expected: 0.603, kind: abs, tol: 0.005}
+  imagenet.native.dilated3m.mean5: {expected: 0.673, kind: abs, tol: 0.005}
+  imagenet.native.ring10m.beirut: {expected: 0.385, kind: abs, tol: 0.005}
+  imagenet.native.ring10m.congo: {expected: 0.697, kind: abs, tol: 0.005}
+  imagenet.native.ring10m.hawaii: {expected: 0.727, kind: abs, tol: 0.005}
+  imagenet.native.ring10m.la_palma: {expected: 0.815, kind: abs, tol: 0.005}
+  imagenet.native.ring10m.libya: {expected: 0.542, kind: abs, tol: 0.005}
+  imagenet.native.ring10m.mean5: {expected: 0.633, kind: abs, tol: 0.005}
+  imagefree.geometry.beirut: {expected: 0.661, kind: abs, tol: 0.005}
+  imagefree.geometry.congo: {expected: 0.269, kind: abs, tol: 0.005}
+  imagefree.geometry.hawaii: {expected: 0.405, kind: abs, tol: 0.005}
+  imagefree.geometry.la_palma: {expected: 0.544, kind: abs, tol: 0.005}
+  imagefree.geometry.libya: {expected: 0.272, kind: abs, tol: 0.005}
+  imagefree.geometry.mean5: {expected: 0.430, kind: abs, tol: 0.005}
+
 # Table IV: event-level comparisons (5 events, 95% t-interval, 4 df)
 comparisons:
   "0.3m vs native (outline)":      {estimate: -0.030, lower: -0.122, upper: 0.062, verdict: "Inconclusive"}
   "0.3m vs native (dilated3m)":    {estimate: -0.022, lower: -0.110, upper: 0.066, verdict: "Inconclusive"}
   "dilated3m vs outline (native)": {estimate: -0.003, lower: -0.015, upper: 0.010, verdict: "Not a worthwhile gain"}
   "dilated3m vs outline (0.3m)":   {estimate: 0.005,  lower: -0.008, upper: 0.018, verdict: "Not a worthwhile gain"}
+  # p03 (exploratory, development events)
+  "DINOv3 vs ImageNet (outline)":        {estimate: -0.043, lower: -0.246, upper: 0.159, verdict: "Inconclusive"}
+  "building vs surroundings (DINOv3)":   {estimate: 0.002,  lower: -0.051, upper: 0.054, verdict: "Inconclusive"}
+  "building vs surroundings (ImageNet)": {estimate: 0.030,  lower: -0.048, upper: 0.109, verdict: "Inconclusive"}
+  "DINOv3 vs image-free":                {estimate: 0.190,  lower: -0.102, upper: 0.482, verdict: "Inconclusive"}
+  "ImageNet vs image-free":              {estimate: 0.234,  lower: -0.094, upper: 0.561, verdict: "Inconclusive"}
+  "dilated3m vs outline (ImageNet)":     {estimate: 0.009,  lower: -0.018, upper: 0.037, verdict: "Inconclusive"}
 comparison_tol: {estimate: 0.005, bounds: 0.01}
 
 # Section VI-A: footprint-to-SAR offsets per tile (c07 / r01 step 5b; CPU, deterministic: seed 0).
