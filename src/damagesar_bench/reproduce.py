@@ -15,6 +15,8 @@ import pandas as pd
 import yaml
 
 UNLOCKED_ROLES = ("development", "secondary")
+OFFSET_COLUMNS = ("median_offset_m", "median_offset_confident_m", "median_offset_tokens", "share_confident",
+                  "share_beats_null", "direction_R")
 
 
 class ReproduceError(ValueError):
@@ -25,9 +27,9 @@ def load_expected(path: str | Path) -> pd.DataFrame:
     """Flatten the expected-values file into rows: id, expected, kind, tol, paper."""
     raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
     rows = []
-    for group in ("data", "tokens", "auroc", "probes"):
+    for group in ("data", "tokens", "auroc", "offsets", "probes"):
         for key, spec in (raw.get(group) or {}).items():
-            rows.append({"id": f"{group}.{key}" if group in ("tokens", "auroc") else key,
+            rows.append({"id": f"{group}.{key}" if group in ("tokens", "auroc", "offsets") else key,
                          "expected": spec.get("expected"), "kind": spec.get("kind", "exact"),
                          "tol": spec.get("tol"), "paper": spec.get("paper", group)})
     tol = raw.get("comparison_tol") or {}
@@ -51,7 +53,7 @@ def _setting_key(encoder: str) -> str:
 def collect_actual(tile_summary: pd.DataFrame | None = None, buildings: pd.DataFrame | None = None,
                    building_summary: pd.DataFrame | None = None, event_metrics: pd.DataFrame | None = None,
                    comparisons: pd.DataFrame | None = None, probe_fits: pd.DataFrame | None = None,
-                   max_iter: int = 5000) -> dict:
+                   offsets: pd.DataFrame | None = None, max_iter: int = 5000) -> dict:
     """Values of a run under the ids used in ``paper/expected_values.yaml`` (any input may be missing)."""
     got: dict = {}
     if tile_summary is not None:
@@ -101,6 +103,11 @@ def collect_actual(tile_summary: pd.DataFrame | None = None, buildings: pd.DataF
             for col in ("estimate", "lower", "upper"):
                 got[f"cmp.{r['label']}.{col}"] = round(float(r[col]), 3)
             got[f"cmp.{r['label']}.verdict"] = str(r["verdict"])
+    if offsets is not None:
+        for _, r in offsets.iterrows():
+            for col in OFFSET_COLUMNS:
+                if col in offsets.columns and pd.notna(r[col]):
+                    got[f"offsets.{col}.{r['event']}"] = round(float(r[col]), 3)
     if probe_fits is not None and len(probe_fits):
         got["all_converged"] = bool((probe_fits["n_iter"] < max_iter).all())
     return got

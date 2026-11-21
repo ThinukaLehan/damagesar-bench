@@ -92,5 +92,45 @@ comparisons:
   "dilated3m vs outline (0.3m)":   {estimate: 0.005,  lower: -0.008, upper: 0.018, verdict: "Not a worthwhile gain"}
 comparison_tol: {estimate: 0.005, bounds: 0.01}
 
+# Section VI-A: footprint-to-SAR offsets per tile (c07 / r01 step 5b; CPU, deterministic: seed 0).
+# Run of 22 Nov 2026 (c07_c2_offsets), main @ 84ef278. Footprints and SAR only.
+offsets:
+  median_offset_m.beirut: {expected: 25.612, kind: abs, tol: 0.05}
+  median_offset_confident_m.beirut: {expected: 17.205, kind: abs, tol: 0.05}
+  median_offset_tokens.beirut: {expected: 2.151, kind: abs, tol: 0.01}
+  share_confident.beirut: {expected: 0.153, kind: abs, tol: 0.002}
+  share_beats_null.beirut: {expected: 0.333, kind: abs, tol: 0.002}
+  direction_R.beirut: {expected: 0.766, kind: abs, tol: 0.002}
+  median_offset_m.congo: {expected: 7.88, kind: abs, tol: 0.05}
+  median_offset_confident_m.congo: {expected: 7.542, kind: abs, tol: 0.05}
+  median_offset_tokens.congo: {expected: 1.414, kind: abs, tol: 0.01}
+  share_confident.congo: {expected: 0.891, kind: abs, tol: 0.002}
+  share_beats_null.congo: {expected: 0.728, kind: abs, tol: 0.002}
+  direction_R.congo: {expected: 0.844, kind: abs, tol: 0.002}
+  median_offset_m.hawaii: {expected: 4.766, kind: abs, tol: 0.05}
+  median_offset_confident_m.hawaii: {expected: 4.225, kind: abs, tol: 0.05}
+  median_offset_tokens.hawaii: {expected: 0.75, kind: abs, tol: 0.01}
+  share_confident.hawaii: {expected: 0.804, kind: abs, tol: 0.002}
+  share_beats_null.hawaii: {expected: 0.125, kind: abs, tol: 0.002}
+  direction_R.hawaii: {expected: 0.524, kind: abs, tol: 0.002}
+  median_offset_m.la_palma: {expected: 28.9, kind: abs, tol: 0.05}
+  median_offset_confident_m.la_palma: {expected: 11.063, kind: abs, tol: 0.05}
+  median_offset_tokens.la_palma: {expected: 2.305, kind: abs, tol: 0.01}
+  share_confident.la_palma: {expected: 0.274, kind: abs, tol: 0.002}
+  share_beats_null.la_palma: {expected: 0.294, kind: abs, tol: 0.002}
+  direction_R.la_palma: {expected: 0.361, kind: abs, tol: 0.002}
+  median_offset_m.libya: {expected: 14.882, kind: abs, tol: 0.05}
+  median_offset_confident_m.libya: {expected: 11.287, kind: abs, tol: 0.05}
+  median_offset_tokens.libya: {expected: 2.016, kind: abs, tol: 0.01}
+  share_confident.libya: {expected: 0.378, kind: abs, tol: 0.002}
+  share_beats_null.libya: {expected: 0.48, kind: abs, tol: 0.002}
+  direction_R.libya: {expected: 0.865, kind: abs, tol: 0.002}
+  median_offset_m.marshall: {expected: 2.4, kind: abs, tol: 0.05}
+  median_offset_confident_m.marshall: {expected: 2.4, kind: abs, tol: 0.05}
+  median_offset_tokens.marshall: {expected: 0.25, kind: abs, tol: 0.01}
+  share_confident.marshall: {expected: 0.924, kind: abs, tol: 0.002}
+  share_beats_null.marshall: {expected: 0.0, kind: abs, tol: 0.002}
+  direction_R.marshall: {expected: 0.628, kind: abs, tol: 0.002}
+
 probes:
   all_converged: {expected: true, kind: exact}
