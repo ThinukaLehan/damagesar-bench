@@ -53,6 +53,15 @@ def _f(x: float, signed: bool = False) -> str:
     return s.replace("-", "$-$") if signed else s
 
 
+def _md(df: pd.DataFrame) -> str:
+    """Plain markdown table (no optional dependencies)."""
+    cols = [str(c) for c in df.columns]
+    out = ["| " + " | ".join(cols) + " |", "|" + "|".join("---" for _ in cols) + "|"]
+    for row in df.itertuples(index=False):
+        out.append("| " + " | ".join("" if pd.isna(v) else str(v) for v in row) + " |")
+    return "\n".join(out)
+
+
 def load(run: Path) -> dict:
     bench = run / "bench_run"
     return {
@@ -136,12 +145,11 @@ def write(d: dict, x: dict, out: Path) -> None:
              f"- Two-sided sign-flip p {r['sign_flip_p']:.4f}",
              f"- Supporting: satellite ahead (bootstrap interval > 0) in {sup['n_a_better']} of 5; ImageNet in "
              f"{sup['n_b_better']} of 5; one-sided sign-flip p {sup['sign_flip_one_sided_p']:.4f}", "",
-             "## Per-event paired differences (supporting)", "", d["per_event"].round(4).to_markdown(index=False), "",
+             "## Per-event paired differences (supporting)", "", _md(d["per_event"].round(4)), "",
              "## Exploratory comparisons", "",
-             x["exploratory"][["label", "estimate", "lower", "upper", "verdict", "sign_flip_p"]].round(4)
-             .to_markdown(index=False), "",
+             _md(x["exploratory"][["label", "estimate", "lower", "upper", "verdict", "sign_flip_p"]].round(4)), "",
              "## RQ3 (exploratory): label-free prevalence, RQ1 model", "",
-             d["c3"].round(3).to_markdown(index=False), "",
+             _md(d["c3"].round(3)), "",
              "Image-free control: not blind on these events (31 Oct audit computed a building-count AUROC).", ""]
     (out / "locked_results.md").write_text("\n".join(lines), encoding="utf-8")
 
