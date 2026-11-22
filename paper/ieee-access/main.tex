@@ -29,7 +29,7 @@
 \corresp{Corresponding author: Thinuka Lehan (e-mail: thinukalehanfyp@gmail.com).}
 
 \begin{abstract}
-Building-damage models for synthetic aperture radar (SAR) lose accuracy on unseen disasters, and current evaluations cannot say why: they score pixels or tiles, use optical outlines that do not line up with the radar signal, and rarely control for shortcuts. We present DamageSAR-Bench, an open toolkit and benchmark that classifies damage to given building footprints in single-band SAR at native resolution, holds each disaster out in turn, and keeps the test events' labels locked in code until the analysis plan is frozen. Frozen encoders are pooled over each footprint, read out by linear probes and compared with image-free and neighbourhood controls. On the BRIGHT dataset, in three of the six labelled events open for development, the radar signal sits 1.4 to 2.2 encoder tokens (7.5 to 17~m) from the optical outlines in a consistent direction, and in 5 of 11 labelled events over 80\% of buildings cover fewer than four tokens. On five development events, a frozen DINOv3 encoder with a linear probe reaches a building-level area under the receiver operating characteristic curve of 0.50 to 0.85 (mean 0.62); an ImageNet-supervised encoder averages 0.66, though the interval of the difference includes zero. For DINOv3, pooling only a building's surroundings scores the same as pooling the building, and building size and crowding alone match the encoders in one event and fall below chance in others. These diagnostics implicate how buildings are evaluated, and possibly calibration (untested here), not only representation. One notebook rebuilds every number from public data.
+Building-damage models for synthetic aperture radar (SAR) lose accuracy on unseen disasters, and current evaluations cannot say why: they score pixels or tiles, use optical outlines that do not line up with the radar signal, and rarely control for shortcuts. We present DamageSAR-Bench, an open toolkit and benchmark that classifies damage to given building footprints in single-band SAR at native resolution, holds each disaster out in turn, and keeps the test events' labels locked in code until the analysis plan is frozen. Frozen encoders are pooled over each footprint, read out by linear probes and compared with image-free and neighbourhood controls. On five BRIGHT development events, five frozen encoders reach a building-level area under the receiver operating characteristic curve (AUROC) of 0.39 to 0.89. Pretraining data matters most: at the same model size, DINOv3 ViT-L pretrained on satellite images averages 0.765 against 0.649 for its web-pretrained twin, and it is the only encoder above 0.64 on every event. Much of the remaining signal is not the building's own: for DINOv3 ViT-B, pooling only a building's surroundings scores the same as pooling the building, and building size and crowding alone match the encoders in one event and fall below chance in others. Good ranking does not give a usable decision on a new event: the predicted share of damaged buildings is far from the true share, and label-free prevalence estimation abstains or fails in all ten cases tried. Two pre-specified fixes suggested by our audit, shifting each footprint by its measured offset from the SAR signal and label-free recalibration, do not pass their gates. One notebook rebuilds every number from public data.
 \end{abstract}
 
 \begin{keywords}
@@ -56,9 +56,11 @@ Separating these requires a test bed that is building-level, SAR-only, held out 
 We make three contributions:
 \begin{itemize}
 \item \textbf{C1, DamageSAR-Bench:} an open, tested toolkit and benchmark that evaluates frozen encoders on single-band SAR at native resolution, at the level of given building footprints, holds each disaster out, keeps the confirmatory events' labels locked in code until the analysis plan is frozen, and reports per-event and event-level results with a decision table fixed in advance.
-\item \textbf{C2, a diagnostic audit of BRIGHT at building level:} the offset between optical footprints and the SAR signal, tile by tile and against a permutation null; how many encoder tokens buildings cover; and, on five development events, how much of a frozen encoder's score an image-free control and a neighbourhood control already reach. The audit also documents a property of the labels that affects anyone reusing them (Section~\ref{sec:data}).
-\item \textbf{C3, a pre-specified confirmatory protocol:} research questions, event-level statistics with a power analysis, gates, and two candidate methods suggested by the audit, \emph{projected-footprint pooling}, which pools each building where the radar is expected to see it~\cite{liu2014height,brunner2010earthquake}, and \emph{label-free recalibration} to a new event's damage rate by expectation--maximization (EM)~\cite{saerens2002adjusting} or black-box shift estimation (BBSE)~\cite{lipton2018bbse}. Both methods are specified here and decided at gates on development events; their outcomes and the confirmatory test are reported separately, after the plan is frozen.
+\item \textbf{C2, a diagnostic audit of BRIGHT at building level:} the offset between optical footprints and the SAR signal, tile by tile and against a permutation null; how many encoder tokens buildings cover; and, on five development events, how five frozen encoders compare and how much of their scores an image-free control and a neighbourhood control already reach. The audit also documents a property of the labels that affects anyone reusing them (Section~\ref{sec:data}).
+\item \textbf{C3, a pre-specified confirmatory protocol:} research questions, event-level statistics with a power analysis, gates, and two candidate methods suggested by the audit, \emph{projected-footprint pooling}, which pools each building where the radar is expected to see it~\cite{liu2014height,brunner2010earthquake}, and \emph{label-free recalibration} to a new event's damage rate by expectation--maximization (EM)~\cite{saerens2002adjusting} or black-box shift estimation (BBSE)~\cite{lipton2018bbse}. Both methods were fixed, with their gates, before any of their results was computed on the development events; neither passes (Sections~\ref{sec:res-gate1} and~\ref{sec:res-c3}). The confirmatory test is reported separately, after the plan is frozen.
 \end{itemize}
+
+On the development events, three findings stand out. Which data an encoder was pretrained on matters more than its size or its training method: a DINOv3 ViT-L pretrained on satellite images has the highest mean AUROC of the five encoders tested and is ahead of its web-pretrained twin of the same size in four of five events. Much of what looks like damage recognition is context: a building's surroundings, or its size and crowding, reach the same score in several events. And ranking buildings well does not transfer into a usable threshold or damage rate on a new event, which two principled fixes do not repair.
 
 Building-level damage classification from post-event VHR SAR alone has been tested across sites before, with hand-crafted texture features and a random forest~\cite{macchiarulo2025sar}. To our knowledge, no published evaluation combines building-level units, very-high-resolution (VHR) SAR at native resolution, frozen foundation encoders, event-held-out testing across hazards, and image-free and neighbourhood controls at building level (Table~\ref{tab:related}). The closest work, a shortcut audit of DINOv3 and three geospatial foundation models on xView2 and BRIGHT with held-out events and an image-free control~\cite{shibli2026shortcut}, evaluates image tiles; its authors name building-level evaluation as future work. Our differences are the building as the unit, a neighbourhood control that excludes the building's own tokens, the footprint-to-SAR offset audit, and a code-level lock on the test labels.
 
@@ -103,7 +105,7 @@ Guo \emph{et al.}~\cite{guo2026neighbourhood} & Building & VHR optical; optical-
 HASTE~\cite{robinson2026haste} & Building & VHR optical & Per event, with labels & -- & -- & -- \\
 Macchiarulo \emph{et al.}~\cite{macchiarulo2025sar} & Building & VHR SAR (Capella), post-event only & Partly (held-out site; 2 earthquakes) & -- & -- & -- \\
 \midrule
-\textbf{DamageSAR-Bench} & \textbf{Building (given footprint)} & \textbf{VHR SAR, single band, native resolution} & \textbf{\checkmark{} (leave-one-event-out)} & \textbf{\checkmark{} (image-free, neighbourhood)} & \textbf{Specified (EM/BBSE); evaluated at its gate} & \textbf{\checkmark{} (code-level lock)} \\
+\textbf{DamageSAR-Bench} & \textbf{Building (given footprint)} & \textbf{VHR SAR, single band, native resolution} & \textbf{\checkmark{} (leave-one-event-out)} & \textbf{\checkmark{} (image-free, neighbourhood)} & \textbf{EM/BBSE; gate not passed} & \textbf{\checkmark{} (code-level lock)} \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -154,10 +156,10 @@ DamageSAR-Bench is a Python package with a command-line interface. Each stage re
 \end{figure}
 
 \subsection{Encoders and Input}
-{\sloppy Two frozen encoders are reported: DINOv3 ViT-B/16 pretrained by self-supervision on LVD-1689M, a curated set of 1.7 billion web images~\cite{simeoni2026dinov3} (Hugging Face \path{facebook/dinov3-vitb16-pretrain-lvd1689m}), and a supervised ViT-B/16 pretrained on ImageNet-21k and fine-tuned on ImageNet-1k~\cite{dosovitskiy2021vit} (\path{google/vit-base-patch16-224}). Each run records the exact weights commit. BRIGHT distributes each post-event SAR tile as one 8-bit band~\cite{chen2025bright}; we divide by 255 and apply no further conversion, clipping or speckle filtering. The band is copied into three channels and normalized with the ImageNet mean and standard deviation (SD), and the full $1024\times1024$ tile is encoded in one pass in half precision. DINOv3 uses rotary position embeddings, which accept any input size; the ImageNet ViT's learned $224$-pixel position embeddings are interpolated bicubically to the $64\times64$ token grid. Only the patch tokens are kept (class and register tokens are dropped). A ViT/16 patch token (token for short) covers 4.8--9.6~m of ground at these resolutions, so many buildings cover only a few tokens (Section~\ref{sec:res-size}). We therefore compare native resolution with resampling every tile to a common 0.3~m before encoding.\par}
+{\sloppy Five frozen encoders are reported (Hugging Face identifiers in the repository): DINOv3 ViT-B/16 and ViT-L/16 pretrained by self-supervision on LVD-1689M, a curated set of 1.7 billion web images; DINOv3 ViT-L/16 pretrained on SAT-493M, 493 million satellite images~\cite{simeoni2026dinov3}; DINOv2 ViT-B/14~\cite{oquab2024dinov2}; and a supervised ViT-B/16 pretrained on ImageNet-21k and fine-tuned on ImageNet-1k~\cite{dosovitskiy2021vit}. The two ViT-L models have the same architecture and differ only in their pretraining data, so their comparison isolates that factor. Each run records the exact weights commit. BRIGHT distributes each post-event SAR tile as one 8-bit band~\cite{chen2025bright}; we divide by 255 and apply no further conversion, clipping or speckle filtering. The band is copied into three channels and normalized with the ImageNet mean and standard deviation (SD), or, for the satellite model, with the statistics published for it. The full $1024\times1024$ tile is encoded in one pass, in half precision for the ViT-B models and in single precision for the ViT-L models, whose activations overflow in half precision at this size. DINOv3 uses rotary position embeddings, which accept any input size; the learned position embeddings of DINOv2 and of the ImageNet ViT are interpolated bicubically to the token grid. Only the patch tokens are kept (class and register tokens are dropped). A ViT/16 patch token (token for short) covers 4.8--9.6~m of ground at these resolutions, so many buildings cover only a few tokens (Section~\ref{sec:res-size}). For DINOv3 ViT-B we therefore also compare native resolution with resampling every tile to a common 0.3~m before encoding.\par}
 
 \subsection{Footprint Pooling}
-Let $\mathbf{z}_t\in\mathbb{R}^{D}$ be the feature of token $t$ in a tile, with $D=768$ for ViT-B, $P_b$ the region of building $b$, and $|P_b\cap t|$ the ground area of $P_b$ inside token $t$. The building's vector is the area-weighted mean
+Let $\mathbf{z}_t\in\mathbb{R}^{D}$ be the feature of token $t$ in a tile, with $D=768$ for ViT-B and $1024$ for ViT-L, $P_b$ the region of building $b$, and $|P_b\cap t|$ the ground area of $P_b$ inside token $t$. The building's vector is the area-weighted mean
 \begin{equation}
 \mathbf{x}_b=\frac{\sum_{t}|P_b\cap t|\,\mathbf{z}_t}{\sum_{t}|P_b\cap t|}.
 \label{eq:pool}
@@ -177,16 +179,17 @@ where $\mathbf{w}\in\mathbb{R}^{D}$ and $c$ are the probe's weights and intercep
 \end{equation}
 where $\mathbb{1}(\cdot)$ is 1 if its argument is true and 0 otherwise. AUROC is 0.5 for a random ranking and does not depend on prevalence. Its uncertainty within one event comes from a bootstrap that resamples tiles, not buildings (2,000 replicates, seed 0), because buildings in one tile are not independent.
 
-\subsection{Projected-Footprint Pooling (Specified, Not Yet Evaluated)}
+\subsection{Image-Matched Footprint Pooling}
+\label{sec:c2}
 In a side-looking SAR image a building of height $h$ appears displaced towards the sensor by about
 \begin{equation}
 \Delta_{\mathrm{lay}}=h\cot\theta,
 \label{eq:layover}
 \end{equation}
-where $\theta$ is the incidence angle from vertical, with a shadow of about $h\tan\theta$ behind it. Projected pooling moves the pooling region of~\eqref{eq:pool} by $\Delta_{\mathrm{lay}}$ towards the sensor, along the scene's look direction, where viewing geometry is known; elsewhere dilated pooling is used instead of a guess. It is compared with four controls: outline pooling; dilated pooling of matched area; the same shift in a random direction; and the 10~m ring. The gate that decides whether it proceeds is given in Section~\ref{sec:setup}.
+where $\theta$ is the incidence angle from vertical, with a shadow of about $h\tan\theta$ behind it. Moving the pooling region by~\eqref{eq:layover} would need building heights, which BRIGHT does not provide, and the viewing geometry of every scene, which is public for only some events. We therefore measure the shift from the image itself. For each tile, the footprint mask is cross-correlated with the SAR image as in the offset audit (Section~\ref{sec:results}), and the pooling region of~\eqref{eq:pool} for every building in the tile is moved by the measured offset, but only where the offset is real: its correlation peak stands at least 3 SDs above the search window and beats the permutation null. Other tiles are pooled as drawn. The shift uses footprints and SAR only, no labels, and was fixed before any of its AUROCs was computed. It is compared with four controls: outline pooling; dilated pooling; the ring; and the same shift distance in a random direction, drawn independently for each tile in $R=10$ repetitions. The gate that decides whether it proceeds is given in Section~\ref{sec:setup}.
 
-\subsection{Label-Free Recalibration (Specified, Not Yet Evaluated)}
-The probe's scores on a new event are adjusted to that event's estimated damage prevalence by EM~\cite{saerens2002adjusting} or BBSE~\cite{lipton2018bbse}, without its labels, giving an estimated count of damaged buildings among the supplied footprints. The rule for abstaining is fixed on the development events before the plan is frozen.
+\subsection{Label-Free Recalibration}
+For a target event, the source is every other event's held-out scores, each from a probe that never saw that event, so the source scores are out of sample. The logit of the score is calibrated on the source by Platt scaling, the simplest form of bias-corrected calibration~\cite{alexandari2020bcts}; EM~\cite{saerens2002adjusting} then estimates the target's damage prevalence from the calibrated posteriors, starting at the source prevalence. Binary BBSE~\cite{lipton2018bbse}, $(q-\mathrm{fpr})/(\mathrm{tpr}-\mathrm{fpr})$ with $q$ the target's predicted-positive share at threshold 0.5 and the rates measured on the source, is a cross-check. The method abstains if the source $\mathrm{tpr}-\mathrm{fpr}$ is below 0.2 or if EM and BBSE differ by more than 50\% of the larger estimate; otherwise the EM estimate times the number of footprints is the estimated damaged count. The baseline is the training-average prevalence. These rules were fixed in the plan before any recalibration result was computed.
 
 \subsection{Controls}
 Every benchmark run reports two controls. The \emph{image-free} control uses no pixels: a probe of the same form~\eqref{eq:probe} on four geometry features per building (log footprint area, log number of buildings in its tile, log number of buildings within 50~m, and log distance to the nearest building). The \emph{neighbourhood} control is the same encoder pooled over the ring, which sees the surroundings but not the building. A model that does not beat its controls is not credited with recognizing damage.
@@ -198,8 +201,8 @@ Every benchmark run reports two controls. The \emph{image-free} control uses no 
 \subsection{Research Questions}
 Four research questions (RQs) are fixed in advance:
 \begin{itemize}
-\item \textbf{RQ1} (primary). Does a modern self-supervised encoder (DINOv3) classify damage to given footprints on an unseen disaster better than an ImageNet-supervised ViT-B?
-\item \textbf{RQ2} (primary, only if Gate~1 passes). Does projected-footprint pooling beat outline pooling?
+\item \textbf{RQ1} (primary). Does a modern self-supervised encoder (DINOv3) classify damage to given footprints on an unseen disaster better than an ImageNet-supervised ViT-B? Which DINOv3 model enters the locked test is fixed in the plan at the freeze.
+\item \textbf{RQ2} (primary, only if Gate~1 passes). Does image-matched pooling beat outline pooling? Gate~1 did not pass (Section~\ref{sec:res-gate1}), so RQ2 is not tested.
 \item \textbf{RQ3} (exploratory). How accurately can a new event's damage prevalence be estimated without labels, and how often must the estimate abstain?
 \item \textbf{RQ4} (exploratory). How much of each model's score do the image-free and neighbourhood controls already reach?
 \end{itemize}
@@ -215,12 +218,12 @@ where $\bar g$ and $s_g$ are the mean and SD of the gains and $t_{1-\alpha/2,n-1
 An exact sign-flip test of the mean gain is reported as supporting evidence only; with five events its smallest attainable two-sided $p$ is $2/32$. With six events, the minimum detectable mean gain at two-sided 5\% and 80\% power is $1.43\,s_g$ (1.68\,$s_g$ with five), solved with the noncentral $t$ distribution; the smallest attainable sign-flip $p$ is $2/64$ ($2/32$). Because power depends on $s_g$, a pilot rule fixes which result is reported first for a primary comparison: if the SD of its gains on the development events is at most 0.020, the decision-table verdict; between 0.020 and 0.035, the estimate and its interval; above 0.035, a supporting estimate. The statistics code is tested against hand-worked values, printed tables, scikit-learn and statsmodels.
 
 \subsection{Gates and What Was Seen Before the Freeze}
-Gate~1 (development events only) decides whether projected-footprint pooling proceeds to RQ2. It passes only if, over the five development events, (i) its mean AUROC gain over outline pooling is at least $+0.02$, (ii) it beats outline pooling on at least four of the five events, and (iii) its mean gain exceeds that of the random-direction shift of the same size; it is also reported against the dilated and ring controls. Recalibration passes its gate if its relative prevalence error is at most 50\% on at least four of five development events and lower than a training-average baseline.
+Gate~1 (development events only) decides whether image-matched pooling proceeds to RQ2. It passes only if, over the five development events, (i) its mean AUROC gain over outline pooling is at least $+0.02$, (ii) it beats outline pooling on at least four of the five events, and (iii) its mean gain exceeds the 95th percentile of the mean gains of the $R=10$ random-direction shifts of the same size; it is also reported against the dilated and ring controls. Recalibration passes its gate if its relative prevalence error is at most 50\% on at least four of five development events and lower than the training-average baseline's on at least four; an abstention counts as a miss for both.
 
-An audit on 31 October 2026 looked at confirmatory events in four limited ways: class and instance counts, footprint-to-SAR offsets, raw-signal AUROC and a building-count AUROC. No encoder features were computed and no setting was chosen from them. The offsets motivated projected-footprint pooling, which is therefore designed and gated on development events only. This disclosure will be part of the registered plan; at the freeze the plan is deposited with a time-stamped DOI, so that the record does not rest on a git tag alone.
+An audit on 31 October 2026 looked at confirmatory events in four limited ways: class and instance counts, footprint-to-SAR offsets, raw-signal AUROC and a building-count AUROC. No encoder features were computed and no setting was chosen from them. The offsets motivated image-matched pooling, which is therefore designed and gated on development events only. This disclosure will be part of the registered plan; at the freeze the plan is deposited with a time-stamped DOI, so that the record does not rest on a git tag alone.
 
 \subsection{Implementation and Compute}
-The toolkit is written in Python (PyTorch 2.14, Transformers 5.22, scikit-learn 1.6, rasterio 1.5) and has more than 230 unit tests. All runs used one NVIDIA T4 graphics processing unit (GPU) on Google Colab with 12.7~GB of system memory. DINOv3 ViT-B/16 encodes a 1024-pixel tile in half precision at about 10.5 tiles/s with 0.36~GB of GPU memory; with file reading and pooling, the 1,026 development and secondary tiles took 501--506~s for DINOv3 (two separate runs) and 783~s for the ImageNet ViT-B at native resolution, and 738~s for DINOv3 at 0.3~m.
+The toolkit is written in Python (PyTorch 2.14, Transformers 5.22, scikit-learn 1.6, rasterio 1.5) and has more than 230 unit tests. All runs used one NVIDIA T4 graphics processing unit (GPU) on Google Colab with 12.7~GB of system memory. DINOv3 ViT-B/16 encodes a 1024-pixel tile in half precision at about 10.5 tiles/s with 0.36~GB of GPU memory; with file reading and pooling, the 1,026 development and secondary tiles took 501--506~s for DINOv3 (two separate runs) and 783~s for the ImageNet ViT-B at native resolution, and 738~s for DINOv3 at 0.3~m. In single precision, each DINOv3 ViT-L took about 2,075~s (0.49 tiles/s).
 
 % ---------------------------------------------------------------------------------------------------------------
 \section{Results}
@@ -230,7 +233,7 @@ All numbers in this section come from development and secondary events, or are c
 \subsection{Data Audit and Reproduction}
 The toolkit's data checks gave identical results when rerun in a second computing account: 4,246 tiles, no unreadable tiles, the same per-event tile counts and the same 20 no-data exclusions. Every number in this paper is listed with its source run and tolerance in the repository, and one notebook rebuilds them from the public data in a fresh session and checks each; run in a fresh session, it reproduced every checked value, with counts identical and the largest AUROC difference 0.002 (see Data and Code Availability).
 
-To measure how far the SAR signal sits from the optical footprints, each tile's footprint mask is cross-correlated with its SAR image at quarter resolution within $\pm40$~m. A shift counts as clear when its correlation peak stands at least 3 standard deviations above the search window, and as real when it beats the same footprints matched against three other tiles of the event (a permutation null). Table~\ref{tab:offsets} gives the result. In Congo, Libya and Beirut the signal sits 7.5--17~m away, 1.4--2.2 tokens, in a consistent direction (mean resultant length $R=0.77$--$0.86$), and the shift beats the null in 33--73\% of tiles. In Hawaii and Marshall it does not (13\% and 0\% of tiles; under one token): there the outlines already line up. La Palma's shift is weak and has no consistent direction. Because scene co-registration error is about one pixel~\cite{chen2025bright}, whole-scene misregistration is an unlikely sole cause; whether the offset is layover, local misalignment or both is what projected-footprint pooling will test.
+To measure how far the SAR signal sits from the optical footprints, each tile's footprint mask is cross-correlated with its SAR image at quarter resolution within $\pm40$~m. A shift counts as clear when its correlation peak stands at least 3 standard deviations above the search window, and as real when it beats the same footprints matched against three other tiles of the event (a permutation null). Table~\ref{tab:offsets} gives the result. In Congo, Libya and Beirut the signal sits 7.5--17~m away, 1.4--2.2 tokens, in a consistent direction (mean resultant length $R=0.77$--$0.86$), and the shift beats the null in 33--73\% of tiles. In Hawaii and Marshall it does not (13\% and 0\% of tiles; under one token): there the outlines already line up. La Palma's shift is weak and has no consistent direction. Because scene co-registration error is about one pixel~\cite{chen2025bright}, whole-scene misregistration is an unlikely sole cause; whether the offset is layover, local misalignment or both is what image-matched pooling tests (Section~\ref{sec:res-gate1}).
 
 \begin{table}[t]
 \centering
@@ -253,7 +256,7 @@ Marshall & 66 & 92\% & 2.4~m & 0.25 & 0\% & 0.63 \\
 
 \subsection{Buildings Are Small Relative to Encoder Tokens}
 \label{sec:res-size}
-Table~\ref{tab:tokens} gives, for each labelled event, the share of buildings that cover fewer than four ViT/16 tokens at native resolution and after resampling to 0.3~m. At native resolution, more than a quarter of buildings in every event cover fewer than four tokens, and in Congo, Marshall, Haiti, Noto and Bata more than 80\% do. Resampling to 0.3~m cuts the share by 1.6--4$\times$ for the coarser events (Beirut 41.9 to 13.3\%, Marshall 91.4 to 22.6\%) and changes little where the native resolution is already near 0.3~m. In Congo and La Palma, 70--92\% of buildings stay under four tokens even at 0.3~m: a building's vector is mostly its surroundings. This limits what any footprint-pooling method, including projected pooling, can do there, and raises the risk of the neighbourhood shortcut~\cite{guo2026neighbourhood}.
+Table~\ref{tab:tokens} gives, for each labelled event, the share of buildings that cover fewer than four ViT/16 tokens at native resolution and after resampling to 0.3~m. At native resolution, more than a quarter of buildings in every event cover fewer than four tokens, and in Congo, Marshall, Haiti, Noto and Bata more than 80\% do. Resampling to 0.3~m cuts the share by 1.6--4$\times$ for the coarser events (Beirut 41.9 to 13.3\%, Marshall 91.4 to 22.6\%) and changes little where the native resolution is already near 0.3~m. In Congo and La Palma, 70--92\% of buildings stay under four tokens even at 0.3~m: a building's vector is mostly its surroundings. This limits what any footprint-pooling method, including image-matched pooling, can do there, and raises the risk of the neighbourhood shortcut~\cite{guo2026neighbourhood}.
 
 \begin{table}[t]
 \centering
@@ -320,7 +323,7 @@ Dil.\ vs.\ outl., 0.3~m & $+0.005$ & [$-0.008$, $+0.018$] & 0.010 & 0.25 & Not w
 \end{tabular}
 \end{table}
 
-Three observations follow. First, frozen features transfer very unevenly: Congo reaches 0.85, while Hawaii (wildfire) and Libya (flood) stay at chance. A single mean across events hides this, which is why the benchmark reports every event. Second, resampling to 0.3~m does not help on average; it costs 0.08--0.12 AUROC in Beirut and Congo and gains 0.06--0.07 in Hawaii, so the resolution choice interacts with the event, and native resolution is kept, as it is also cheaper. Third, growing the footprint by 3~m changes AUROC by at most 0.02 in any event, and its gains vary little between events (SD 0.010). For a pooling comparison of this kind, the pilot rule's first band ($s_g\le0.020$, Section~\ref{sec:setup}) applies, and with six events the minimum detectable mean gain would be about $1.43\times0.010\approx0.014$ AUROC, below $\delta$. A test of projected pooling is therefore adequately powered if its gains vary as little as dilation's. A test of resolution, whose gains vary seven times as much (SD 0.07), would not be.
+Three observations follow. First, frozen features transfer very unevenly: Congo reaches 0.85, while Hawaii (wildfire) and Libya (flood) stay at chance. A single mean across events hides this, which is why the benchmark reports every event. Second, resampling to 0.3~m does not help on average; it costs 0.08--0.12 AUROC in Beirut and Congo and gains 0.06--0.07 in Hawaii, so the resolution choice interacts with the event, and native resolution is kept, as it is also cheaper. Third, growing the footprint by 3~m changes AUROC by at most 0.02 in any event, and its gains vary little between events (SD 0.010). For a pooling comparison of this kind, the pilot rule's first band ($s_g\le0.020$, Section~\ref{sec:setup}) applies, and with six events the minimum detectable mean gain would be about $1.43\times0.010\approx0.014$ AUROC, below $\delta$. A test of image-matched pooling is therefore adequately powered if its gains vary as little as dilation's. A test of resolution, whose gains vary seven times as much (SD 0.07), would not be.
 
 \subsection{Controls and the ImageNet Baseline}
 \label{sec:controls}
@@ -329,7 +332,7 @@ Table~\ref{tab:controls} and Fig.~\ref{fig:auroc} add the two controls and the I
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig_auroc.pdf}
-\caption{Building-level AUROC per held-out development event for frozen DINOv3 pooled over the outline and over the 10~m surroundings only, the ImageNet-supervised ViT-B (outline), and the image-free control. Bars: 95\% tile-cluster bootstrap intervals. Dashed line: chance.}
+\caption{Building-level AUROC per held-out development event for frozen DINOv3 ViT-B pooled over the outline and over the 10~m surroundings only, the ImageNet-supervised ViT-B and the satellite-pretrained DINOv3 ViT-L (outline), and the image-free control. Bars: 95\% tile-cluster bootstrap intervals. Dashed line: chance.}
 \label{fig:auroc}
 \end{figure}
 
@@ -379,17 +382,137 @@ Second, for DINOv3 we detect no difference between pooling the building and pool
 
 Third, the image-free control behaves very differently from event to event. In Beirut, building size and crowding alone reach 0.661, as high as either encoder, so the encoders' Beirut scores are not evidence that they see damage. In Congo and Libya the control falls well below chance (0.269 and 0.272; Libya's interval excludes 0.5), and Hawaii's 0.405 is also below it: the relationship between building geometry and damage that the probe learns on the other events is reversed on these. This is a shortcut that does not transfer, of the kind that a mixed split rewards and an event-held-out split exposes.
 
+\subsection{Encoders and Pretraining Data}
+\label{sec:res-encoders}
+Table~\ref{tab:encoders} compares five frozen encoders with outline pooling at native resolution, under the same probes and folds; Fig.~\ref{fig:auroc} shows the strongest against the controls. The DINOv3 ViT-L pretrained on satellite images has the highest AUROC in four of five events and the highest mean (0.765), and it is the only encoder above 0.64 on every event. At the same model size, its web-pretrained twin averages 0.649; the satellite model is ahead on four events, by 0.03 to 0.22, and behind only in Congo ($-0.05$). It is also ahead of the ImageNet ViT-B on all five events, by 0.04 to 0.28. Scaling the web-pretrained DINOv3 from ViT-B to ViT-L adds less (+0.029), and DINOv3 is ahead of DINOv2 at ViT-B size by +0.051, with DINOv2 below chance in Beirut and Libya. With five events every interval still includes zero (Table~\ref{tab:cmp3}), but the ordering is clear: what the encoder was pretrained on matters more than its size or its self-supervised method. Satellite pretraining helps most where the web-pretrained models were at chance, Hawaii (wildfire) and Libya (flood), and in La Palma.
+
+\begin{table}[t]
+\centering
+\caption{Building-level AUROC of five frozen encoders (outline pooling, native resolution, held-out development events). Highest per event in bold.}
+\label{tab:encoders}
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Encoder (pretraining) & Beir. & Congo & Haw. & La P. & Libya & Mean \\
+\midrule
+DINOv2 ViT-B (web) & 0.437 & \textbf{0.889} & 0.591 & 0.545 & 0.386 & 0.570 \\
+DINOv3 ViT-B (web) & 0.646 & 0.849 & 0.504 & 0.604 & 0.498 & 0.620 \\
+DINOv3 ViT-L (web) & 0.709 & 0.878 & 0.586 & 0.634 & 0.437 & 0.649 \\
+ImageNet ViT-B (supervised) & 0.465 & 0.781 & 0.716 & 0.755 & 0.600 & 0.663 \\
+DINOv3 ViT-L (satellite) & \textbf{0.742} & 0.827 & \textbf{0.755} & \textbf{0.856} & \textbf{0.646} & \textbf{0.765} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Event-level encoder comparisons (5 events, 95\% t-interval; $p$: exact sign-flip test). All verdicts: inconclusive.}
+\label{tab:cmp3}
+\footnotesize
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}lrcr@{}}
+\toprule
+Comparison & Gain & 95\% interval & $p$ \\
+\midrule
+DINOv3 ViT-L: satellite vs.\ web & $+0.117$ & [$-0.033$, $+0.266$] & 0.19 \\
+DINOv3 (web): ViT-L vs.\ ViT-B & $+0.029$ & [$-0.040$, $+0.097$] & 0.31 \\
+ViT-B (web): DINOv3 vs.\ DINOv2 & $+0.051$ & [$-0.097$, $+0.198$] & 0.44 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsection{Ranking Is Not a Decision}
+\label{sec:res-threshold}
+AUROC measures ranking and ignores prevalence. A responder needs a decision: which buildings to visit, and how many are damaged. Table~\ref{tab:threshold} gives, at the probe's own threshold of 0.5 (natural here, because the probes use balanced class weights), the share of buildings predicted damaged against the true share. Every encoder misses the true share by a factor of 1.8 or more in at least three of the five events. The satellite ViT-L, the best ranker, calls almost no building damaged in Beirut, Hawaii and Libya (F1 0.00--0.01) and 64\% in Congo, where 9\% are; the image-free control predicts 73\% in Beirut, where 3\% are. The scores shift as a whole from one disaster to the next, so a threshold learned on other events does not carry over, even when the ranking within the event is good. This is the calibration explanation of Section~\ref{sec:introduction} in its plainest form, and it is the problem that label-free recalibration was meant to solve.
+
+\begin{table*}[t]
+\centering
+\caption{Share of buildings predicted damaged at the probe threshold of 0.5 (F1 in brackets), against the true share. Outline pooling, native resolution, held-out development events.}
+\label{tab:threshold}
+\footnotesize
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Setting & Beirut & Congo & Hawaii & La Palma & Libya \\
+\midrule
+True share & 0.031 & 0.091 & 0.711 & 0.188 & 0.350 \\
+\midrule
+DINOv3 ViT-B & 0.101 (0.121) & 0.181 (0.477) & 0.059 (0.109) & 0.365 (0.327) & 0.016 (0.012) \\
+DINOv3 ViT-L, web & 0.259 (0.120) & 0.106 (0.591) & 0.387 (0.519) & 0.209 (0.298) & 0.059 (0.073) \\
+DINOv3 ViT-L, satellite & 0.001 (0.000) & 0.641 (0.232) & 0.005 (0.012) & 0.113 (0.499) & 0.004 (0.002) \\
+ImageNet ViT-B & 0.324 (0.055) & 0.025 (0.236) & 0.187 (0.366) & 0.509 (0.432) & 0.169 (0.302) \\
+Image-free control & 0.733 (0.075) & 0.127 (0.088) & 0.717 (0.708) & 0.875 (0.322) & 0.346 (0.131) \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Gate~1: Image-Matched Pooling}
+\label{sec:res-gate1}
+Table~\ref{tab:gate1} gives the result for DINOv3 ViT-B at native resolution. The measured offset was real, and the footprints were moved, in 4 to 70 tiles per event (68\% of Congo's tiles, 7--21\% elsewhere), by a median of 7.8~m in Congo and 15--21~m in the other events. Image-matched pooling changes AUROC by $-0.010$ to $+0.040$ (mean $+0.007$, interval $-0.018$ to $+0.033$) and is ahead of outline pooling in three of five events. All three conditions of Gate~1 fail: the mean gain is below $+0.02$, it wins in three events rather than four, and it is below the 95th percentile of the random-direction shifts ($+0.016$; their mean gains range from $-0.011$ to $+0.016$). In four events the gain lies inside the range of the ten random shifts of the same distance, and in Hawaii it is below it; La Palma's $+0.040$, the largest, is exceeded by four of them. It is also no better than dilated pooling ($+0.010$, $-0.021$ to $+0.041$) or the ring ($+0.009$, $-0.067$ to $+0.086$). Moving footprints to where the radar signal is measured does no better than moving them the same distance at random, so RQ2 is not tested.
+
+\begin{table}[t]
+\centering
+\caption{Gate~1 (DINOv3 ViT-B, native). Moved: tiles with a real offset, out of all tiles. Gain: AUROC of image-matched minus outline pooling. Null: range of the gains of the ten random-direction shifts of the same distance.}
+\label{tab:gate1}
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lrrcrc@{}}
+\toprule
+Event & Moved & Median & AUROC & Gain & Null range \\
+\midrule
+Beirut & 8/111 & 21.3~m & 0.636 & $-0.010$ & $-0.043$ to $+0.009$ \\
+Congo & 63/92 & 7.8~m & 0.855 & $+0.006$ & $-0.016$ to $+0.010$ \\
+Hawaii & 4/56 & 16.2~m & 0.493 & $-0.010$ & $-0.004$ to $+0.032$ \\
+La Palma & 70/603 & 21.1~m & 0.643 & $+0.040$ & $-0.002$ to $+0.065$ \\
+Libya & 21/98 & 14.9~m & 0.509 & $+0.011$ & $-0.039$ to $+0.024$ \\
+\midrule
+Mean & & & 0.627 & $+0.007$ & 95th pct.\ $+0.016$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Label-Free Recalibration on the Development Events}
+\label{sec:res-c3}
+Table~\ref{tab:c3} gives the recalibration results for both encoders, with outline pooling. Neither passes the gate. For DINOv3 the method abstains on all five events: at the probe's threshold the pooled source separates damaged from intact buildings only weakly ($\mathrm{tpr}-\mathrm{fpr}$ of 0.05 to 0.20), below the 0.2 the rule requires, and in three events EM and BBSE also disagree. For the ImageNet probe it abstains on three events; on the other two, Hawaii and Libya, it estimates a prevalence of almost zero against true values of 0.71 and 0.35. There both EM and BBSE collapse to the boundary, so they agree and the disagreement check does not fire. The training-average baseline is also far off in these events (relative errors 0.80 and 0.58).
+
+\begin{table}[t]
+\centering
+\caption{Label-free prevalence on the development events (outline pooling). $J$: source $\mathrm{tpr}-\mathrm{fpr}$ at threshold 0.5. An abstention reports no estimate.}
+\label{tab:c3}
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}llrrrrrl@{}}
+\toprule
+Encoder & Event & True & Baseline & EM & BBSE & $J$ & Outcome \\
+\midrule
+DINOv3 & Beirut & 0.031 & 0.218 & 0.100 & 0.000 & 0.08 & abstain \\
+DINOv3 & Congo & 0.091 & 0.190 & 0.007 & 0.000 & 0.05 & abstain \\
+DINOv3 & Hawaii & 0.711 & 0.145 & 0.000 & 0.000 & 0.17 & abstain \\
+DINOv3 & La Palma & 0.188 & 0.159 & 0.000 & 1.000 & 0.08 & abstain \\
+DINOv3 & Libya & 0.350 & 0.145 & 0.000 & 0.000 & 0.20 & abstain \\
+\midrule
+ImageNet & Beirut & 0.031 & 0.218 & 1.000 & 0.330 & 0.21 & abstain \\
+ImageNet & Congo & 0.091 & 0.190 & 0.000 & 0.000 & 0.15 & abstain \\
+ImageNet & Hawaii & 0.711 & 0.145 & 0.000 & 0.000 & 0.23 & estimate 0.000 \\
+ImageNet & La Palma & 0.188 & 0.159 & 1.000 & 1.000 & 0.04 & abstain \\
+ImageNet & Libya & 0.350 & 0.145 & 0.000 & 0.000 & 0.25 & estimate 0.000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+With probes this weak, label-free prevalence estimation is not usable: the source carries too little separation for either estimator, and EM is driven to the boundary in most events. The abstain rule refuses eight of ten cases, but it has a blind spot when both estimators fail in the same direction. Estimating a new event's damage rate without labels therefore needs a better-separating model first; the satellite ViT-L separates better, but its scores shift between events even more (Table~\ref{tab:threshold}), and whether recalibration works with it is left for future work rather than tested after the gate.
+
 % ---------------------------------------------------------------------------------------------------------------
 \section{Discussion and Limitations}
 \label{sec:discussion}
 
-\textbf{What the results say about the three explanations.} The evidence bears on each explanation of Section~\ref{sec:introduction} without settling any, and it comes from five development events and two encoders. \emph{Representation:} frozen features separate damaged from intact buildings clearly in some events and not at all in others, and which encoder does better depends on the event; for DINOv3 in wildfire and flood, the features do not carry damage in a form a linear probe can transfer. \emph{Evaluation:} outlines are offset from the SAR signal by one to two tokens in three of the six open labelled events (Table~\ref{tab:offsets}); most buildings in several events are smaller than a few tokens; and, for DINOv3, the surroundings alone reproduce the outline score. For this encoder at native resolution, we cannot distinguish a building-level score from a score of the building's neighbourhood. \emph{Calibration:} prevalence ranges from 3\% to 71\% across the open labelled events, and the image-free control shows that even the direction of the geometry--damage relationship changes between events. AUROC does not depend on prevalence, so the prevalence effect itself will show in threshold-based metrics and in recalibration, which are not reported here.
+\textbf{What the results say about the three explanations.} The evidence bears on each explanation of Section~\ref{sec:introduction} without settling any, and it comes from five development events. \emph{Representation:} it matters, and mostly through the pretraining data. Web-pretrained encoders separate damaged from intact buildings clearly in some events and not at all in others, and which of them does better depends on the event; the satellite-pretrained ViT-L is ahead in four events and lifts wildfire and flood off chance. Better features, not only better evaluation, are therefore part of the answer. \emph{Evaluation:} outlines are offset from the SAR signal by one to two tokens in three of the six open labelled events (Table~\ref{tab:offsets}); most buildings in several events are smaller than a few tokens; and, for DINOv3 ViT-B, the surroundings alone reproduce the outline score. For this encoder at native resolution, we cannot distinguish a building-level score from a score of the building's neighbourhood. \emph{Calibration:} prevalence ranges from 3\% to 71\% across the open labelled events; the image-free control shows that even the direction of the geometry--damage relationship changes between events; and no encoder's threshold carries over to a new event (Table~\ref{tab:threshold}). Label-free recalibration, which should correct for this, fails because the scores separate the classes too weakly (Section~\ref{sec:res-c3}). Of the three, calibration is the least addressed by better features: the best ranker is among the worst calibrated.
 
 \textbf{What the design can and cannot show.} With five or six events, only large and consistent gains can be detected ($1.43\,s_g$ with six). Every comparison so far is inconclusive, and the per-event gains between the two encoders have an SD of 0.16; we therefore treat an inconclusive verdict as a real and reportable outcome, report the estimate and its interval whatever the verdict, and keep exploratory analyses separate from the primary claims.
 
-\textbf{Implications for projected-footprint pooling.} For DINOv3, dilating footprints by 3~m, about half a token, changed AUROC by at most 0.02 in any event (for ImageNet features, by up to 0.04), so a shift smaller than about one token barely changes a building's vector. Table~\ref{tab:offsets} shows no offset beyond the permutation null in Hawaii or Marshall, and only a weak, scattered one in La Palma, so projected pooling can be expected to change little there; Congo and Libya, where the offset is real and consistent, are where it can help. Gate~1's requirement of a win on at least four of five development events could therefore fail for a reason in the data rather than the method; this is accepted in advance rather than changed after results are seen. Because the surroundings carry most of DINOv3's signal, projected pooling is also reported against the ring control, not only against outline pooling.
+\textbf{Why image-matched pooling did not help.} For DINOv3 ViT-B, dilating footprints by 3~m, about half a token, changed AUROC by at most 0.02 in any event, and pooling only the surroundings scored the same as the building; a building's vector is dominated by its context. Moving the footprint by one to two tokens therefore changes the vector little, and where it does, a random move of the same distance changes it as much (Table~\ref{tab:gate1}). The offset is real and measurable, but at this token size it is not what limits the score. Image-matched pooling may matter for an encoder with finer tokens, or once the surroundings no longer carry the signal; we report it as a negative result under the pre-specified rule rather than tune it after the gate.
 
-\textbf{Viewing geometry.} Projected pooling needs each scene's look direction and incidence angle. Public catalogues give full geometry for five events (Haiti, La Palma, Marshall, Hawaii and Libya), and which scene BRIGHT used is not certain for every event. Where geometry is missing, projected pooling falls back to dilated pooling, so its claim covers fewer events.
+\textbf{Viewing geometry.} The image-matched shift needs neither building heights nor viewing geometry, which is why it replaced the planned height-based shift~\eqref{eq:layover} before any result: public catalogues give full geometry for only five events, and which scene BRIGHT used is not certain for every event. Whether the measured offsets are layover therefore remains open.
 
 \textbf{Post-event SAR only.} The benchmark uses the post-event SAR image alone, the setting in which SAR is most useful when no recent pre-event radar acquisition exists; BRIGHT's pre-event optical images are used only to draw footprints. Change detection with pre-event images is a different and complementary task; the poor transfer in wildfire and flood may partly reflect this setting rather than the encoders.
 
@@ -399,17 +522,17 @@ Third, the image-free control behaves very differently from event to event. In B
 
 \textbf{Baselines.} No supervised or fine-tuned model is reported. Published BRIGHT baselines are pixel-level segmentation networks that also use pre-event optical images, so they are not comparable at building level; the closest building-level SAR study~\cite{macchiarulo2025sar} uses commercial imagery and texture features that we have not reimplemented. Geospatial foundation models such as Prithvi-EO-2.0, DOFA and TerraMind are pretrained on other sensors and resolutions and expect sensor-specific inputs; adapting them to sub-metre single-band SAR is a design choice in itself, and they are natural next additions to the same interface.
 
-\textbf{Scope.} The benchmark assumes footprints are given; in practice they come from pre-event maps or optical detection, and footprint errors are outside this study. All encoders are frozen and read out linearly; fine-tuning or a non-linear read-out may change the ranking. Two encoders are reported; other self-supervised and geospatial foundation models fit the same interface.
+\textbf{Scope.} The benchmark assumes footprints are given; in practice they come from pre-event maps or optical detection, and footprint errors are outside this study. All encoders are frozen and read out linearly; fine-tuning or a non-linear read-out may change the ranking. Five encoders are reported; other self-supervised and geospatial foundation models fit the same interface. The satellite-pretrained model's lead is measured on five development events only and is not yet a confirmatory result.
 
 % ---------------------------------------------------------------------------------------------------------------
 \section{Conclusion}
 \label{sec:conclusion}
-DamageSAR-Bench evaluates frozen encoders on given building footprints in native SAR, one unseen disaster at a time, with image-free and neighbourhood controls and with the test labels locked until the analysis plan is frozen. On the BRIGHT development events, optical outlines sit 1.4 to 2.2 encoder tokens from the SAR signal where the offset is real, many buildings are smaller than a few tokens, a supervised ImageNet encoder has a higher mean AUROC than DINOv3 (within an inconclusive interval), and, for DINOv3, pooling only a building's surroundings gives the same score as pooling the building. On these events, what looks like damage recognition cannot be separated from context, which suggests that part of the failure on unseen disasters lies in how buildings are evaluated, not only in what the features encode. The next stage, fixed in advance, decides at Gate~1 whether projected-footprint pooling beats its controls where offsets are real, tests label-free recalibration, and runs the locked confirmatory test once on six events (five if Ukraine moves to the secondary set).
+DamageSAR-Bench evaluates frozen encoders on given building footprints in native SAR, one unseen disaster at a time, with image-free and neighbourhood controls and with the test labels locked until the analysis plan is frozen. On the BRIGHT development events, three things stand out. Pretraining data matters most: a DINOv3 ViT-L pretrained on satellite images has the highest mean AUROC of the five encoders tested (0.765) and is ahead of its web-pretrained twin of the same size in four of five events. Much of what looks like damage recognition is context: for DINOv3 ViT-B, pooling only a building's surroundings gives the same score as pooling the building, and building size and crowding alone match the encoders in one event. And good ranking does not give a usable decision on a new disaster: no encoder's threshold transfers, and label-free recalibration abstains or fails. Two fixes suggested by our audit, moving footprints to the measured SAR offset and recalibrating to a new event's damage rate, were fixed in advance and do not pass their gates; we report them as negative results. The locked confirmatory test runs once, after the plan is frozen, on the confirmatory events.
 
 % ---------------------------------------------------------------------------------------------------------------
 \section*{Data and Code Availability}
 \label{sec:availability}
-BRIGHT is openly available~\cite{chen2025bright}. The DamageSAR-Bench code, tests, configuration, notebooks, experiment log and pre-specified analysis plan are available under the MIT licence at \url{https://github.com/ThinukaLehan/damagesar-bench}. To reproduce the paper, run \path{notebooks/reproduce/r01_reproduce_paper.ipynb} in a fresh Colab session with a T4 GPU (about 90--100 minutes). It downloads BRIGHT and the instance labels from their original sources, rebuilds the building table, features, offsets, benchmark and controls, and compares every count, AUROC, offset and event-level comparison in the paper with \path{paper/expected_values.yaml}: counts exactly, AUROC within $\pm0.005$ because the encoders run in half precision on a GPU. The repository holds code only; the data are never redistributed. Steps and tolerances are in \path{docs/REPRODUCE.md}.
+BRIGHT is openly available~\cite{chen2025bright}. The DamageSAR-Bench code, tests, configuration, notebooks, experiment log and pre-specified analysis plan are available under the MIT licence at \url{https://github.com/ThinukaLehan/damagesar-bench}. To reproduce the paper, run \path{notebooks/reproduce/r01_reproduce_paper.ipynb} in a fresh Colab session with a T4 GPU (about 3.5--4 hours). It downloads BRIGHT and the instance labels from their original sources, rebuilds the building table, features, offsets, benchmark, controls, the five encoders and Gate~1, and compares every count, AUROC, offset and event-level comparison in the paper with \path{paper/expected_values.yaml}: counts exactly, AUROC within $\pm0.005$ because GPU features are not bit-exact between runs. The repository holds code only; the data are never redistributed. Steps and tolerances are in \path{docs/REPRODUCE.md}.
 
 \section*{Acknowledgment}
 An AI assistant (Claude, Anthropic) was used to help write and test code, draft and edit text, and check references against their sources. The authors designed the study, ran all experiments, checked every number against the experiment log and take full responsibility for the content. This research received no specific grant from any funding agency. The authors declare no competing interests. The study uses only public satellite images and building outlines and involves no human participants or personal data.
