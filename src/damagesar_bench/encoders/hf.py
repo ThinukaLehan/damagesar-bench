@@ -60,6 +60,7 @@ class HFViT(Encoder):
     model_id = ""
     revision: str | None = None   # Hugging Face commit to load; None = latest (the run records which it got)
     needs_interpolation = False   # True for models with fixed 224 px position embeddings
+    norm_stats: tuple | None = None  # (mean, std) per RGB channel; None = ImageNet statistics
 
     def __init__(self, device: str | None = None, fp16: bool = True):
         try:
@@ -76,8 +77,9 @@ class HFViT(Encoder):
         self.weights_revision = resolve_weights_revision(self.model_id, rev, self.model.config)
         self.dim = int(self.model.config.hidden_size)
         self.patch_px = int(self.model.config.patch_size)
-        self.mean = np.array(IMAGENET_MEAN, dtype=np.float32)[:, None, None]
-        self.std = np.array(IMAGENET_STD, dtype=np.float32)[:, None, None]
+        mean, std = self.norm_stats or (IMAGENET_MEAN, IMAGENET_STD)
+        self.mean = np.array(mean, dtype=np.float32)[:, None, None]
+        self.std = np.array(std, dtype=np.float32)[:, None, None]
 
     def _encode(self, image: np.ndarray) -> np.ndarray:  # pragma: no cover - needs torch + weights
         torch = self._torch
@@ -94,6 +96,21 @@ class HFViT(Encoder):
 class DINOv3ViTB16(HFViT):
     name = "dinov3_vitb16"
     model_id = "facebook/dinov3-vitb16-pretrain-lvd1689m"
+
+
+@register("dinov3_vitl16")
+class DINOv3ViTL16(HFViT):
+    """DINOv3 ViT-L/16, web images (LVD-1689M): the size-matched partner of the satellite model."""
+    name = "dinov3_vitl16"
+    model_id = "facebook/dinov3-vitl16-pretrain-lvd1689m"
+
+
+@register("dinov3_vitl16_sat")
+class DINOv3ViTL16Sat(HFViT):
+    """DINOv3 ViT-L/16 pretrained on satellite images (SAT-493M), with the statistics Meta gives for it."""
+    name = "dinov3_vitl16_sat"
+    model_id = "facebook/dinov3-vitl16-pretrain-sat493m"
+    norm_stats = ((0.430, 0.411, 0.296), (0.213, 0.156, 0.143))
 
 
 @register("dinov2_vitb14")
