@@ -12,7 +12,7 @@ events:
   morocco:   {name: "Morocco earthquake",      hazard: earthquake, role: confirmatory, units: instance}
   noto:      {name: "Noto earthquake",         hazard: earthquake, role: confirmatory, units: instance}
   bata:      {name: "Bata explosion",          hazard: explosion,  role: confirmatory, units: instance}
-  ukraine:   {name: "Ukraine conflict",        hazard: conflict,   role: confirmatory, units: fallback}
+  ukraine:   {name: "Ukraine conflict",        hazard: conflict,   role: secondary,    units: none}       # moved 22 Nov 2026: no instance labels (pre-registration §2)
   beirut:    {name: "Beirut explosion",        hazard: explosion,  role: development,  units: instance}
   la_palma:  {name: "La Palma volcano",        hazard: volcano,    role: development,  units: instance}
   hawaii:    {name: "Hawaii wildfire",         hazard: wildfire,   role: development,  units: instance}
