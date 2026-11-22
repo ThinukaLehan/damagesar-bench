@@ -116,6 +116,21 @@ class DINOv3ViTL16Sat(HFViT):
     norm_stats = ((0.430, 0.411, 0.296), (0.213, 0.156, 0.143))
 
 
+@register("dinov3_vitb16_fp32")
+class DINOv3ViTB16FP32(DINOv3ViTB16):
+    """DINOv3 ViT-B/16 in single precision: removes the precision difference to the ViT-L models (p05)."""
+    name = "dinov3_vitb16_fp32"
+    half_precision = False
+
+
+@register("dinov3_vitl16_satnorm")
+class DINOv3ViTL16SatNorm(DINOv3ViTL16):
+    """Web-pretrained DINOv3 ViT-L/16 normalized with the satellite model's statistics: removes the normalization
+    difference in the satellite-vs-web comparison (p05)."""
+    name = "dinov3_vitl16_satnorm"
+    norm_stats = DINOv3ViTL16Sat.norm_stats
+
+
 @register("dinov2_vitb14")
 class DINOv2ViTB14(HFViT):
     name = "dinov2_vitb14"
