@@ -33,13 +33,13 @@ FRONT = r"""\documentclass{ieeeaccess}
 
 \title{%(title)s}
 
-\author{\uppercase{Thinuka Lehan}\authorrefmark{1} and \uppercase{Achala Aponsu}\authorrefmark{1}}
+\author{\uppercase{Thinuka Lehan}\authorrefmark{1}, \uppercase{Achala Aponsu}\authorrefmark{1}, and \uppercase{Maninda Alahakoon}\authorrefmark{1}}
 \address[1]{Informatics Institute of Technology (IIT), Colombo, Sri Lanka}
 \tfootnote{This research received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors.}
 
 \markboth
-{T. Lehan and A. Aponsu: DamageSAR-Bench: Building-Level Evaluation of Frozen Vision Foundation Models}
-{T. Lehan and A. Aponsu: DamageSAR-Bench: Building-Level Evaluation of Frozen Vision Foundation Models}
+{T. Lehan \headeretal: DamageSAR-Bench: Building-Level Evaluation of Frozen Vision Foundation Models}
+{T. Lehan \headeretal: DamageSAR-Bench: Building-Level Evaluation of Frozen Vision Foundation Models}
 
 \corresp{Corresponding author: Thinuka Lehan (e-mail: thinukalehanfyp@gmail.com).}
 
