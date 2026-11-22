@@ -1,6 +1,6 @@
 # Pre-registration: DamageSAR-Bench confirmatory analysis
 
-- **Status:** final draft for the freeze on **22 Nov 2026** (moved forward from 10 Jan 2027 at the supervisor's request, 22 Nov 2026). Frozen by the git tag `prereg-freeze` and a Zenodo deposit of this file; the date, tag and DOI are in `docs/FREEZE.md`. The locked run (`notebooks/locked/k01_locked_confirmatory_test.ipynb`) refuses to start without them.
+- **Status:** **FROZEN on 22 Nov 2026** (moved forward from 10 Jan 2027 at the supervisor's request, 22 Nov 2026). Frozen by the git tag `prereg-freeze` and a Zenodo deposit of this file; the date, tag and DOI are in `docs/FREEZE.md`. The locked run (`notebooks/locked/k01_locked_confirmatory_test.ipynb`) refuses to start without them.
 - **Design version:** v11.1 (FYP Master, 9 Nov 2026).
 - Every item once marked TBD was fixed on development events before the freeze (see the decision record at the end). Anything changed after the freeze is reported as a deviation.
 
@@ -39,7 +39,7 @@ Classification of **given building footprints** as damaged-or-destroyed vs intac
 - **Pre-registered supporting evidence for RQ1 (added 22 Nov 2026, before the freeze; `stats/supporting.py`):** because five events can confirm only a large gain, two further results are reported with RQ1, labelled supporting; neither changes the primary verdict.
   1. *Within each confirmatory event:* the paired AUROC difference (RQ1 DINOv3 model − ImageNet ViT-B, the same buildings) with a 95% tile-cluster bootstrap interval (2,000 replicates, seed 0). An event counts for a model when the whole interval lies on its side of zero. Reported: the number of the 5 events that count for each model. The paired DeLong difference and p-value are a side check only (DeLong treats buildings as independent).
   2. *Across events:* the exact **one-sided** sign-flip p-value in the pre-registered direction (the DINOv3 model better than ImageNet); 1/32 if it is ahead in all 5 events.
-- **Rehearsal:** the locked analysis (`src/damagesar_bench/locked.py`, called by k01) was run before the freeze on the development events standing in for the confirmatory ones (`notebooks/checks/k00_locked_rehearsal.ipynb`); its result is recorded in `EXPERIMENT_LOG.md`.
+- **Rehearsal:** the locked analysis (`src/damagesar_bench/locked.py`, called by k01) was run before the freeze on the development events standing in for the confirmatory ones (`notebooks/checks/k00_locked_rehearsal.ipynb`); **passed on 22 Nov 2026** (all six checks: only RQ1 labelled confirmatory; level 0.975; per-event AUROCs equal p03/p04 within 0.005; RQ1 estimate +0.102; supporting evidence and C3 ran on 5 events), recorded in `EXPERIMENT_LOG.md`.
 - Within one event: tile-cluster bootstrap (paired DeLong as a side check).
 - **Implementation** (`src/damagesar_bench/stats/`, tested against hand-worked values, printed t tables, a brute-force DeLong, scikit-learn and statsmodels):
   - Verdicts compare values after rounding to 10 decimals, so floating-point noise cannot change a row (e.g. 0.1 − 0.08 counts as exactly +0.02). Equality cases: estimate = +0.02 → row 1; lower = 0 → not "> 0"; upper = +0.02 → not "< +0.02" (inconclusive).
@@ -118,4 +118,5 @@ was known when the plan was frozen.
 - More encoders (p04, 22 Nov): outline AUROC means DINOv2 ViT-B/14 0.570, DINOv3 ViT-L web 0.649, **DINOv3 ViT-L satellite 0.765**; satellite − web +0.117 [−0.033, +0.266], better on 4 of 5. At the probe threshold every encoder's predicted damaged share is far from the true share.
 - References: ViT-B fine-tuned on 32 m crops (b01) mean 0.651; texture + random forest (b02) mean 0.598; satellite ViT-L probe − texture +0.167 [+0.040, +0.294], better on 5 of 5 (exploratory).
 - Confound controls (p05, 22 Nov): DINOv3 ViT-B fp32 − fp16 +0.004 [−0.000, +0.009]; satellite − web ViT-L with the same normalization +0.119 [−0.030, +0.268], 4 of 5.
-- Reproduction (r01, 22 Nov): 172 of 172 checks reproduced from raw data. The later runs (p04, g01, b02, p05) were added to r01, which is rerun on the frozen commit.
+- Reproduction (r01, 22 Nov): 172 of 172 checks reproduced from raw data. The later runs (p04, g01, b02, p05) were added to r01, which is rerun on the frozen commit; r01 keeps the confirmatory labels locked whatever the date.
+- Locked-analysis rehearsal (k00, 22 Nov): passed (§5).
