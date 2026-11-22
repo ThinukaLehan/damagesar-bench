@@ -21,7 +21,7 @@ Classification of **given building footprints** as damaged-or-destroyed vs intac
 - Ground resolution: **native** (ADR 0001, decided 20 Nov 2026 on development events only). Token pooling: area-weighted (`pooling/footprint.py`).
 
 ## 4. Models
-- Primary encoders (RQ1): **one DINOv3 model**, named in `docs/FREEZE.md` as `rq1_encoder` (decision 10, below): either DINOv3-LVD ViT-B/16 (`facebook/dinov3-vitb16-pretrain-lvd1689m`, as first planned) or DINOv3-SAT ViT-L/16 (`facebook/dinov3-vitl16-pretrain-sat493m`, fp32, chosen on the development events in p04), against ImageNet ViT-B/16 (`google/vit-base-patch16-224`). If the ViT-L is named, DINOv3 ViT-B/16 vs ImageNet is also reported, as exploratory. Exploratory otherwise: DINOv2 ViT-B/14, DINOv3 ViT-L/16 (web), the fine-tuned ViT-B (b01) and the texture + random forest reference (b02).
+- Primary encoders (RQ1): **DINOv3-SAT ViT-L/16** (`facebook/dinov3-vitl16-pretrain-sat493m`, fp32, satellite statistics; chosen on the development events in p04, decision 10) against **ImageNet ViT-B/16** (`google/vit-base-patch16-224`), named in `docs/FREEZE.md` as `rq1_encoder: dinov3_vitl16_sat`. First planned: DINOv3-LVD ViT-B/16 (`facebook/dinov3-vitb16-pretrain-lvd1689m`); DINOv3 ViT-B/16 vs ImageNet is still reported, as exploratory. Exploratory otherwise: DINOv2 ViT-B/14, DINOv3 ViT-L/16 (web), the fine-tuned ViT-B (b01) and the texture + random forest reference (b02).
 - Channel adapter (decided 22 Nov 2026): the single SAR band (8-bit, divided by 255) is replicated to three channels and normalised with each model's published statistics, as in every development run; for an RGB encoder this equals summing the first-layer weights.
 - Probe: logistic regression, L2, C = 1, class-balanced, no tuning on held-out events. Features are standardised with mean and SD from the training events only; lbfgs, up to 5,000 iterations; a probe that does not converge stops the run (`probe/logistic.py`). Events with `units: none` never train.
 - **Training rule:** before the freeze, probes train on development + secondary events only; confirmatory labels are not used, even as training data. After the freeze, probes train on all events except the held-out one.
@@ -93,13 +93,14 @@ _None yet._ Any change after the freeze is listed here with its date and reason.
 
 The supervisor (Dr. Achala Aponsu) asked on 22 Nov 2026 (phone) to proceed now rather than wait for January, and to
 receive written recommendations on the open questions. The decisions above follow those recommendations
-(`DamageSAR-Bench: Decisions and recommendations for Dr. Aponsu`, 22 Nov 2026) and are **pending his written
-confirmation, which is recorded in `docs/FREEZE.md` before the freeze tag is set**.
+(`DamageSAR-Bench: Decisions and recommendations for Dr. Aponsu`, 22 Nov 2026). **He agreed to all ten on
+22 Nov 2026**, and asked that the venue be an IEEE Q1 journal (decision 7: IEEE JSTARS first). The form and time
+of his agreement are recorded in `docs/FREEZE.md` before the freeze tag is set.
 
-**Decision 10 (pending his confirmation):** which DINOv3 model enters RQ1. Recommended: the satellite-pretrained
-DINOv3 ViT-L/16 (`rq1_encoder: dinov3_vitl16_sat`), which had the highest mean AUROC on the development events (p04);
-the alternative is DINOv3 ViT-B/16 as first planned. The choice is written into `docs/FREEZE.md` before the tag is
-set, and the paper states that it was made on the development events.
+**Decision 10 (agreed 22 Nov 2026):** RQ1 uses the satellite-pretrained DINOv3 ViT-L/16
+(`rq1_encoder: dinov3_vitl16_sat` in `docs/FREEZE.md`), which had the highest mean AUROC on the development events
+(p04). The choice was made on the development events only and the paper says so; DINOv3 ViT-B/16 vs ImageNet is still
+reported, as exploratory.
 
 ## Development-phase results known at the freeze
 
