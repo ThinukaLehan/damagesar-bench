@@ -71,3 +71,14 @@ def test_check_freeze_without_a_record(tmp_path, events_cfg, monkeypatch):
     repo = repo_with(tmp_path, record=None)
     with pytest.raises(FreezeError, match="not frozen"):
         check_freeze(repo, events_cfg, today=date(2027, 2, 1))
+
+
+def test_rq1_encoder_defaults_to_vitb16_and_is_validated(tmp_path):
+    p = tmp_path / "F.md"
+    p.write_text(GOOD)
+    assert read_record(p).rq1_encoder == "dinov3_vitb16"
+    p.write_text(GOOD + "rq1_encoder: dinov3_vitl16_sat\n")
+    assert read_record(p).rq1_encoder == "dinov3_vitl16_sat"
+    p.write_text(GOOD + "rq1_encoder: dinov2_vitb14\n")
+    with pytest.raises(FreezeError, match="rq1_encoder"):
+        read_record(p)

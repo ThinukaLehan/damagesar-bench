@@ -117,3 +117,8 @@ def test_only_compared_skips_unused_settings(tmp_path, events_cfg, before_freeze
     assert set(m["encoder"]) == {"enc_a", "enc_b"}             # enc_c was in the files but not probed
     man = json.loads((out / "run_manifest.json").read_text())
     assert man["settings"] == ["enc_a/outline", "enc_b/outline"]
+
+
+def test_comparison_spec_is_primary_unless_marked():
+    assert ComparisonSpec.parse("a/outline:b/outline").primary
+    assert not ComparisonSpec(("a", "outline"), ("b", "outline"), "RQ4 x", primary=False).primary
