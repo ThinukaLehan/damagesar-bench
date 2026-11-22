@@ -153,6 +153,9 @@ def test_other_encoders_get_their_own_ids():
     assert _setting_key("dinov3_vitb16@0.3m") == "0.3m"
     assert _setting_key("imagenet_vitb16@native") == "imagenet.native"
     assert _setting_key("imagefree") == "imagefree"
+    assert _setting_key("dinov3_vitl16@native") == "dinov3_vitl16.native"
+    assert _setting_key("dinov3_vitl16_sat@native") == "dinov3_vitl16_sat.native"
+    assert _setting_key("dinov2_vitb14@native") == "dinov2_vitb14.native"
     m = pd.DataFrame({
         "encoder": ["dinov3_vitb16@native"] * 2 + ["imagenet_vitb16@native"] * 2 + ["imagefree"] * 2,
         "pooling": ["outline", "outline", "outline", "outline", "geometry", "geometry"],

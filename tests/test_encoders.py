@@ -241,3 +241,14 @@ def test_weights_revision_falls_back_to_cache_snapshot(tmp_path):
 
     assert resolve_weights_revision("org/model", None, Cfg(), cache_dir=tmp_path) == "deadbeef"
     assert resolve_weights_revision("org/other", "v1", Cfg(), cache_dir=tmp_path) == "v1"
+
+
+def test_dinov3_large_encoders_are_registered_with_their_statistics():
+    from damagesar_bench.encoders.base import _REGISTRY as REGISTRY
+    from damagesar_bench.encoders.hf import IMAGENET_MEAN, DINOv3ViTL16, DINOv3ViTL16Sat
+
+    assert REGISTRY["dinov3_vitl16"] is DINOv3ViTL16
+    assert REGISTRY["dinov3_vitl16_sat"] is DINOv3ViTL16Sat
+    assert DINOv3ViTL16.model_id.endswith("lvd1689m") and DINOv3ViTL16.norm_stats is None
+    assert DINOv3ViTL16Sat.model_id.endswith("sat493m")
+    assert DINOv3ViTL16Sat.norm_stats[0] == (0.430, 0.411, 0.296) != IMAGENET_MEAN

@@ -49,16 +49,16 @@ def load_expected(path: str | Path) -> pd.DataFrame:
 def _setting_key(encoder: str) -> str:
     """Id prefix for an encoder setting.
 
-    DINOv3 (the paper's main encoder) keeps the short ids of Tables III-IV (``native``, ``0.3m``); any other
+    DINOv3 ViT-B/16 (the paper's main encoder) keeps the short ids of Tables III-IV (``native``, ``0.3m``); any other
     encoder is prefixed with its short name (``imagenet.native``); a setting without a resolution is its name
     (``imagefree``).
     """
     if "@" not in encoder:
         return encoder
     name, res = encoder.split("@", 1)
-    if name.startswith("dinov3"):
+    if name == "dinov3_vitb16":
         return res
-    return f"{name.split('_', 1)[0]}.{res}"
+    return f"{name.removesuffix('_vitb16')}.{res}"
 
 
 def collect_actual(tile_summary: pd.DataFrame | None = None, buildings: pd.DataFrame | None = None,
