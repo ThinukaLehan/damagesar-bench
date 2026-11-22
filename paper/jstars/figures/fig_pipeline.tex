@@ -14,7 +14,7 @@
 \node[box] (enc)   at (2*\cx,0)     {Frozen encoder\\ (patch-token grid)};
 \node[box] (free)  at (\cx,-\cy)    {Image-free\\ control};
 \node[box] (pool)  at (2*\cx,-\cy)  {Footprint pooling\\ outline, dilated,\\ ring, projected};
-\node[box] (lock)  at (0,-2*\cy)    {Label lock\\ until 10 Jan 2027};
+\node[box] (lock)  at (0,-2*\cy)    {Label lock\\ until the freeze};
 \node[box] (probe) at (\cx,-2*\cy)  {Leave-one-event-out\\ linear probes};
 \node[box] (auc)   at (2*\cx,-2*\cy){Per-event AUROC,\\ tile bootstrap};
 \node[box] (stats) at (\cx,-3*\cy)  {Event-level t-interval,\\ decision table};

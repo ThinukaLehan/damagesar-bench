@@ -1,4 +1,4 @@
-\documentclass{ieeeaccess}
+\documentclass[journal]{IEEEtran}
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
@@ -8,42 +8,32 @@
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \usepackage{url}
 \usepackage[T1]{fontenc}
-\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
-    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \begin{document}
-\history{Date of publication xxxx 00, 0000, date of current version xxxx 00, 0000.}
-\doi{10.1109/ACCESS.2024.0429000}
 
 \title{DamageSAR-Bench: Building-Level Evaluation of Frozen Foundation Models for SAR Damage Classification on Unseen Disasters}
 
-\author{\uppercase{Thinuka Lehan}\authorrefmark{1} and
-\uppercase{Achala Aponsu}\authorrefmark{1}}
+\author{Thinuka~Lehan and Achala~Aponsu%
+\thanks{The authors are with the Informatics Institute of Technology (IIT), Colombo, Sri Lanka (corresponding author: Thinuka Lehan, e-mail: thinukalehanfyp@gmail.com).}}
 
-\address[1]{Informatics Institute of Technology (IIT), Colombo, Sri Lanka}
+\markboth{IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing}%
+{Lehan and Aponsu: Building-Level Evaluation of Frozen Foundation Models for SAR Damage Classification}
 
-\markboth
-{Lehan and Aponsu: DamageSAR-Bench: Building-Level Evaluation of Frozen Foundation Models for SAR Damage Classification}
-{Lehan and Aponsu: DamageSAR-Bench: Building-Level Evaluation of Frozen Foundation Models for SAR Damage Classification}
-
-\corresp{Corresponding author: Thinuka Lehan (e-mail: thinukalehanfyp@gmail.com).}
+\maketitle
 
 \begin{abstract}
 Building-damage models for synthetic aperture radar (SAR) lose accuracy on unseen disasters, and current evaluations cannot say why: they score pixels or tiles, use optical outlines misaligned with the radar signal, and rarely control for shortcuts. We present DamageSAR-Bench, an open benchmark that classifies damage to given building footprints in single-band SAR at native resolution, holds each disaster out in turn, and withholds the test events' labels until the analysis plan is frozen. Frozen encoders are read out by linear probes and compared with image-free and neighborhood controls. On five development events of the BRIGHT disaster dataset, their building-level area under the receiver operating characteristic curve (AUROC) ranges from below chance (0.39) to 0.89. A probe on a large DINOv3 model pretrained on satellite images has the highest mean, 0.765, above the same model pretrained on web images (0.649), a network fine-tuned for the task (0.651) and a texture-based random forest (0.598); with five events, only the gap to the random forest is statistically clear. Much of the signal is context: for a smaller DINOv3 model, a building's surroundings alone score as well as the building. Good ranking is not a usable decision: on a new event, predicted damage shares are far from the truth, and label-free prevalence estimation abstains or fails. Two remedies fixed in advance, shifting footprints to the measured SAR offset and label-free recalibration, do not meet their success criteria. One notebook rebuilds every number from public data.
 \end{abstract}
 
-\begin{keywords}
+\begin{IEEEkeywords}
 Benchmark testing, buildings, disasters, radar imaging, remote sensing, reproducibility of results, synthetic aperture radar, transfer learning
-\end{keywords}
+\end{IEEEkeywords}
 
-\titlepgskip=-21pt
-
-\maketitle
 
 % ---------------------------------------------------------------------------------------------------------------
 \section{Introduction}
 \label{sec:introduction}
-\PARstart{A}{fter} an earthquake, explosion or storm, responders need to know which buildings are damaged within hours. Synthetic aperture radar (SAR) can image through cloud and at night, so it is often the first imagery available. Deep models now classify building damage from SAR and optical pairs with good accuracy on the disasters they were trained on. On a new disaster they fall short: on BRIGHT, the largest open multimodal benchmark for this task, the event-level mean intersection over union (mIoU) of seven models drops from 47.7--52.3\% under a mixed split to 34.1--39.4\% when the test event is held out~\cite{chen2025bright}. Frozen foundation models show the same pattern at tile level~\cite{shibli2026shortcut}, and building-level results on Sentinel-1 drop when the event is held out~\cite{currie2026transfer}. The 2026 BRIGHT Challenge, whose final test used two unseen 2025 events, was won with a test mean average precision of 0.182 for detection, outlining and classification~\cite{chen2026challenge}.
+\IEEEPARstart{A}{fter} an earthquake, explosion or storm, responders need to know which buildings are damaged within hours. Synthetic aperture radar (SAR) can image through cloud and at night, so it is often the first imagery available. Deep models now classify building damage from SAR and optical pairs with good accuracy on the disasters they were trained on. On a new disaster they fall short: on BRIGHT, the largest open multimodal benchmark for this task, the event-level mean intersection over union (mIoU) of seven models drops from 47.7--52.3\% under a mixed split to 34.1--39.4\% when the test event is held out~\cite{chen2025bright}. Frozen foundation models show the same pattern at tile level~\cite{shibli2026shortcut}, and building-level results on Sentinel-1 drop when the event is held out~\cite{currie2026transfer}. The 2026 BRIGHT Challenge, whose final test used two unseen 2025 events, was won with a test mean average precision of 0.182 for detection, outlining and classification~\cite{chen2026challenge}.
 
 Why models fail on unseen events is not known, and current evaluations cannot tell. Three explanations compete, and each predicts a different fix:
 \begin{enumerate}
@@ -571,6 +561,5 @@ is an undergraduate student at the Informatics Institute of Technology (IIT), Co
 is with the Informatics Institute of Technology (IIT), Colombo, Sri Lanka.
 \end{IEEEbiographynophoto}
 
-\EOD
 
 \end{document}
