@@ -26,7 +26,7 @@ SETTINGS = [  # label, AUROC, 95% tile-cluster bootstrap (lower, upper), colour,
      [(0.584, 0.761), (0.129, 0.637), (0.279, 0.526), (0.498, 0.588), (0.168, 0.384)], "#555555", "^"),
 ]
 
-plt.rcParams.update({"font.family": "serif", "font.serif": ["TeX Gyre Termes", "Times New Roman", "DejaVu Serif"], "mathtext.fontset": "stix", "font.size": 8, "axes.linewidth": 0.6})
+plt.rcParams.update({"font.family": "serif", "font.serif": ["TeX Gyre Termes", "Times New Roman", "DejaVu Serif"], "mathtext.fontset": "stix", "font.size": 9, "axes.linewidth": 0.6})
 fig, ax = plt.subplots(figsize=(3.45, 2.55))
 ax.axhline(0.5, color="#999999", lw=0.8, ls="--", zorder=0)
 offsets = [-0.28, -0.14, 0.0, 0.14, 0.28]
@@ -36,14 +36,14 @@ for (label, vals, ci, colour, marker), dx in zip(SETTINGS, offsets):
     ax.errorbar(xs, vals, yerr=err, fmt="none", ecolor=colour, elinewidth=0.7, capsize=1.5, alpha=0.8, zorder=2)
     ax.scatter(xs, vals, s=20, color=colour, marker=marker, edgecolor="white", linewidth=0.5, label=label, zorder=3)
 ax.set_xticks(range(len(EVENTS)))
-ax.set_xticklabels(EVENTS, fontsize=7)
+ax.set_xticklabels(EVENTS, fontsize=8)
 ax.set_ylabel("Building-level AUROC")
 ax.set_ylim(0.1, 0.95)
 ax.set_xlim(-0.5, 4.5)
 for s in ("top", "right"):
     ax.spines[s].set_visible(False)
 ax.grid(axis="y", color="#e5e5e5", lw=0.5, zorder=0)
-ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2, frameon=False, fontsize=6.5,
+ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2, frameon=False, fontsize=7.5,
           handletextpad=0.3, columnspacing=0.8)
 fig.tight_layout(pad=0.3)
 fig.savefig(Path(__file__).with_name("fig_auroc.pdf"))
