@@ -151,6 +151,19 @@ auroc:
   native.matched.libya: {expected: 0.509, kind: abs, tol: 0.005}
   native.matched.mean5: {expected: 0.627, kind: abs, tol: 0.005}
 
+# b02 (22 Nov 2026, main @ 4582400): texture + random forest, CPU, deterministic. r01 step 5f rebuilds these.
+  texture_rf.footprint.beirut: {expected: 0.474, kind: abs, tol: 0.005}
+  texture_rf.footprint.congo: {expected: 0.545, kind: abs, tol: 0.005}
+  texture_rf.footprint.hawaii: {expected: 0.696, kind: abs, tol: 0.005}
+  texture_rf.footprint.la_palma: {expected: 0.765, kind: abs, tol: 0.005}
+  texture_rf.footprint.libya: {expected: 0.510, kind: abs, tol: 0.005}
+  texture_rf.footprint.mean5: {expected: 0.598, kind: abs, tol: 0.005}
+  texture_rf.footprint_ctx32m.beirut: {expected: 0.459, kind: abs, tol: 0.005}
+  texture_rf.footprint_ctx32m.congo: {expected: 0.633, kind: abs, tol: 0.005}
+  texture_rf.footprint_ctx32m.hawaii: {expected: 0.692, kind: abs, tol: 0.005}
+  texture_rf.footprint_ctx32m.la_palma: {expected: 0.687, kind: abs, tol: 0.005}
+  texture_rf.footprint_ctx32m.libya: {expected: 0.449, kind: abs, tol: 0.005}
+  texture_rf.footprint_ctx32m.mean5: {expected: 0.584, kind: abs, tol: 0.005}
 # Table IV: event-level comparisons (5 events, 95% t-interval, 4 df)
 comparisons:
   "0.3m vs native (outline)":      {estimate: -0.030, lower: -0.122, upper: 0.062, verdict: "Inconclusive"}
@@ -172,6 +185,12 @@ comparisons:
   "C2 matched vs outline":       {estimate: 0.007, lower: -0.018, upper: 0.033, verdict: "Inconclusive"}
   "C2 matched vs dilated 3 m":   {estimate: 0.010, lower: -0.021, upper: 0.041, verdict: "Inconclusive"}
   "C2 matched vs ring 10 m":     {estimate: 0.009, lower: -0.067, upper: 0.086, verdict: "Inconclusive"}
+  # b02 (exploratory, development events)
+  "texture vs image-free":            {estimate: 0.168, lower: -0.081, upper: 0.417, verdict: "Inconclusive"}
+  "texture context vs footprint":     {estimate: -0.014, lower: -0.095, upper: 0.067, verdict: "Inconclusive"}
+  "DINOv3 ViT-B probe vs texture":    {estimate: 0.022, lower: -0.243, upper: 0.288, verdict: "Inconclusive"}
+  "ImageNet probe vs texture":        {estimate: 0.066, lower: -0.063, upper: 0.194, verdict: "Inconclusive"}
+  "satellite ViT-L probe vs texture": {estimate: 0.167, lower: 0.040, upper: 0.294, verdict: "Supported: a worthwhile gain"}
 comparison_tol: {estimate: 0.005, bounds: 0.01}
 
 # Section VI-A: footprint-to-SAR offsets per tile (c07 / r01 step 5b; CPU, deterministic: seed 0).
