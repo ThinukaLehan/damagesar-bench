@@ -229,3 +229,21 @@ def test_ring_runs_through_pool_features(events_cfg, before_freeze):
     df = pool_features(b, lambda _t: token_grid(), lambda _t: G, "toy", "ring:8", events_cfg, before_freeze)
     assert list(df["pooling"].unique()) == ["ring8m"]
     assert len(feature_columns(df)) == 3
+
+
+def test_pool_features_matched_and_rshift(events_cfg, before_freeze):
+    bt = building_table(events_cfg)
+    tiles = bt["tile_id"].unique().tolist()
+    zero = {t: (0.0, 0.0) for t in tiles}
+    out0 = pool_features(bt, lambda t: token_grid(dim=3), lambda t: G, "fake", "outline", events_cfg, before_freeze)
+    same = pool_features(bt, lambda t: token_grid(dim=3), lambda t: G, "fake", "matched", events_cfg, before_freeze,
+                         shifts=zero)
+    assert same["pooling"].unique().tolist() == ["matched"]
+    cols = ["f0000", "f0001", "f0002"]
+    np.testing.assert_allclose(same[cols].to_numpy(float), out0[cols].to_numpy(float))   # zero shift = outline
+    moved = pool_features(bt, lambda t: token_grid(dim=3), lambda t: G, "fake", "rshift:2", events_cfg,
+                          before_freeze, shifts={t: (0.0, 6.0) for t in tiles})
+    assert moved["pooling"].unique().tolist() == ["rshift2"]
+    assert not np.allclose(moved[cols].to_numpy(float), out0[cols].to_numpy(float))
+    with pytest.raises(PoolingError, match="needs the per-tile shifts"):
+        pool_features(bt, lambda t: token_grid(), lambda t: G, "fake", "matched", events_cfg, before_freeze)

@@ -54,6 +54,7 @@ def extract_at_resolutions(
     events: EventsConfig,
     today: date | None = None,
     log: Callable[[str], None] = lambda s: None,
+    shifts: dict[str, tuple[float, float]] | None = None,
 ) -> tuple[pd.DataFrame, list[ResolutionRun]]:
     """Extract features once per resolution; one folder (resumable) per resolution."""
     if not resolutions:
@@ -65,7 +66,7 @@ def extract_at_resolutions(
         label = resolution_label(res)
         log(f"--- {encoder.name} at {label}")
         df, rep = extract(buildings, read_tile, encoder, methods, Path(out_root) / label, events,
-                          today=today, target_res_m=res, log=log)
+                          today=today, target_res_m=res, log=log, shifts=shifts)
         df = df.assign(encoder=setting_name(encoder.name, res))
         parts.append(df)
         runs.append(ResolutionRun(label, setting_name(encoder.name, res), rep.tiles_total, rep.seconds,

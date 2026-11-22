@@ -3,7 +3,14 @@
 Methods (pre-registered names):
 * ``outline``      the footprint polygon as drawn (BRIGHT instance labels);
 * ``dilated:<m>``  the footprint grown by <m> metres on the ground, e.g. ``dilated:3``
-                   (FYP Master §7: 3 m). Projected pooling (C2) is added later.
+                   (FYP Master §7: 3 m).
+* ``matched``      C2, image-matched projected pooling: the footprint moved by its tile's measured
+                   footprint-to-SAR offset (``c2_offsets``: cross-correlation of footprints and SAR, no labels),
+                   when that offset is confident (peak_z >= 3 and it beats the permutation null); otherwise not
+                   moved. Needs ``shifts`` (tile_id -> (dy_m, dx_m), zero for tiles that are not confident).
+* ``rshift:<k>``   the random-direction control for ``matched``: each tile's footprints moved by the SAME
+                   distance as ``matched`` but in a random direction (draw ``k``, seeded by tile and ``k``).
+                   A tile with no confident offset is not moved, exactly as under ``matched``.
 * ``ring:<m>``     neighbourhood control (RQ4): the area within <m> metres of the footprint, **minus every
                    token that contains a building pixel**, so the vector carries the surroundings but none
                    of the building itself. If no such token is left (the ring stays inside the building's
@@ -26,6 +33,7 @@ from __future__ import annotations
 
 import json
 import math
+import zlib
 from dataclasses import dataclass
 from datetime import date
 from typing import Callable
@@ -61,8 +69,9 @@ class TileGeometry:
 
 @dataclass(frozen=True)
 class Method:
-    kind: str            # "outline" | "dilated" | "ring"
+    kind: str            # "outline" | "dilated" | "ring" | "matched" | "rshift"
     metres: float = 0.0
+    draw: int = 0        # rshift only: which random draw
 
     @classmethod
     def parse(cls, text: str) -> "Method":
@@ -78,13 +87,52 @@ class Method:
             if not m > 0:
                 raise PoolingError("ring width must be > 0 metres")
             return cls("ring", m)
-        raise PoolingError(f"unknown pooling {text!r} (use 'outline', 'dilated:<metres>' or 'ring:<metres>')")
+        if text == "matched":
+            return cls("matched")
+        if text.startswith("rshift:"):
+            k = int(text.split(":", 1)[1])
+            if k < 0:
+                raise PoolingError("rshift draw must be >= 0")
+            return cls("rshift", draw=k)
+        raise PoolingError(f"unknown pooling {text!r} (use 'outline', 'dilated:<metres>', 'ring:<metres>', "
+                           "'matched' or 'rshift:<draw>')")
+
+    @property
+    def shifted(self) -> bool:
+        return self.kind in ("matched", "rshift")
 
     @property
     def name(self) -> str:
-        if self.kind == "outline":
-            return "outline"
+        if self.kind in ("outline", "matched"):
+            return self.kind
+        if self.kind == "rshift":
+            return f"rshift{self.draw}"
         return f"{self.kind}{self.metres:g}m"
+
+
+def tile_shift(method: Method, tile_id: str, shifts: dict[str, tuple[float, float]] | None) -> tuple[float, float]:
+    """(dy_m, dx_m) to move this tile's footprints by under ``method`` (zero for unshifted methods)."""
+    if not method.shifted:
+        return 0.0, 0.0
+    if shifts is None:
+        raise PoolingError(f"pooling {method.name!r} needs the per-tile shifts (c2_offsets)")
+    dy, dx = shifts.get(tile_id, (0.0, 0.0))
+    if method.kind == "matched":
+        return float(dy), float(dx)
+    mag = math.hypot(dy, dx)
+    if mag == 0:
+        return 0.0, 0.0
+    rng = np.random.default_rng([method.draw, zlib.crc32(tile_id.encode())])
+    a = rng.uniform(0.0, 2 * math.pi)
+    return mag * math.sin(a), mag * math.cos(a)
+
+
+def shift_polygons(polys: list[list[float]], dy_m: float, dx_m: float, geom: TileGeometry) -> list[list[float]]:
+    """Polygons (flat x, y pixel lists) moved by (dy_m, dx_m) metres on the ground (+x east, +y down)."""
+    if dy_m == 0 and dx_m == 0:
+        return polys
+    ddx, ddy = dx_m / geom.px_x_m, dy_m / geom.px_y_m
+    return [[v + (ddx if i % 2 == 0 else ddy) for i, v in enumerate(p)] for p in polys]
 
 
 def building_mask(polys: list[list[float]], geom: TileGeometry, dilate_m: float = 0.0) -> tuple[np.ndarray, int, int]:
@@ -181,6 +229,7 @@ def pool_features(
     method: str,
     events: EventsConfig,
     today: date | None = None,
+    shifts: dict[str, tuple[float, float]] | None = None,
 ) -> pd.DataFrame:
     """Building-features table (ADR 0002) for one encoder and one pooling method.
 
@@ -201,8 +250,11 @@ def pool_features(
             dim = tokens.shape[2]
         elif tokens.shape[2] != dim:
             raise PoolingError(f"{tile_id}: feature size {tokens.shape[2]} != {dim}")
+        dy, dx = tile_shift(m, tile_id, shifts)
+        base = Method("outline") if m.shifted else m
         for _, b in g.iterrows():
-            vec, npix = pool_building(tokens, json.loads(b["segmentation_px"]), geom, m)
+            polys = shift_polygons(json.loads(b["segmentation_px"]), dy, dx, geom)
+            vec, npix = pool_building(tokens, polys, geom, base)
             rows.append({**{c: b[c] for c in LABEL_COLS}, "encoder": encoder, "pooling": m.name,
                          "pool_pixels": npix})
             vecs.append(vec)
