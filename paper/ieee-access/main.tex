@@ -185,8 +185,8 @@ In a side-looking SAR image a building of height $h$ appears displaced towards t
 \end{equation}
 where $\theta$ is the incidence angle from vertical, with a shadow of about $h\tan\theta$ behind it. Projected pooling moves the pooling region of~\eqref{eq:pool} by $\Delta_{\mathrm{lay}}$ towards the sensor, along the scene's look direction, where viewing geometry is known; elsewhere dilated pooling is used instead of a guess. It is compared with four controls: outline pooling; dilated pooling of matched area; the same shift in a random direction; and the 10~m ring. The gate that decides whether it proceeds is given in Section~\ref{sec:setup}.
 
-\subsection{Label-Free Recalibration (Specified, Not Yet Evaluated)}
-The probe's scores on a new event are adjusted to that event's estimated damage prevalence by EM~\cite{saerens2002adjusting} or BBSE~\cite{lipton2018bbse}, without its labels, giving an estimated count of damaged buildings among the supplied footprints. The rule for abstaining is fixed on the development events before the plan is frozen.
+\subsection{Label-Free Recalibration}
+For a target event, the source is every other event's held-out scores, each from a probe that never saw that event, so the source scores are out of sample. The logit of the score is calibrated on the source by Platt scaling, the simplest form of bias-corrected calibration~\cite{alexandari2020bcts}; EM~\cite{saerens2002adjusting} then estimates the target's damage prevalence from the calibrated posteriors, starting at the source prevalence. Binary BBSE~\cite{lipton2018bbse}, $(q-\mathrm{fpr})/(\mathrm{tpr}-\mathrm{fpr})$ with $q$ the target's predicted-positive share at threshold 0.5 and the rates measured on the source, is a cross-check. The method abstains if the source $\mathrm{tpr}-\mathrm{fpr}$ is below 0.2 or if EM and BBSE differ by more than 50\% of the larger estimate; otherwise the EM estimate times the number of footprints is the estimated damaged count. The baseline is the training-average prevalence. These rules were fixed in the plan before any recalibration result was computed.
 
 \subsection{Controls}
 Every benchmark run reports two controls. The \emph{image-free} control uses no pixels: a probe of the same form~\eqref{eq:probe} on four geometry features per building (log footprint area, log number of buildings in its tile, log number of buildings within 50~m, and log distance to the nearest building). The \emph{neighbourhood} control is the same encoder pooled over the ring, which sees the surroundings but not the building. A model that does not beat its controls is not credited with recognizing damage.
@@ -215,7 +215,7 @@ where $\bar g$ and $s_g$ are the mean and SD of the gains and $t_{1-\alpha/2,n-1
 An exact sign-flip test of the mean gain is reported as supporting evidence only; with five events its smallest attainable two-sided $p$ is $2/32$. With six events, the minimum detectable mean gain at two-sided 5\% and 80\% power is $1.43\,s_g$ (1.68\,$s_g$ with five), solved with the noncentral $t$ distribution; the smallest attainable sign-flip $p$ is $2/64$ ($2/32$). Because power depends on $s_g$, a pilot rule fixes which result is reported first for a primary comparison: if the SD of its gains on the development events is at most 0.020, the decision-table verdict; between 0.020 and 0.035, the estimate and its interval; above 0.035, a supporting estimate. The statistics code is tested against hand-worked values, printed tables, scikit-learn and statsmodels.
 
 \subsection{Gates and What Was Seen Before the Freeze}
-Gate~1 (development events only) decides whether projected-footprint pooling proceeds to RQ2. It passes only if, over the five development events, (i) its mean AUROC gain over outline pooling is at least $+0.02$, (ii) it beats outline pooling on at least four of the five events, and (iii) its mean gain exceeds that of the random-direction shift of the same size; it is also reported against the dilated and ring controls. Recalibration passes its gate if its relative prevalence error is at most 50\% on at least four of five development events and lower than a training-average baseline.
+Gate~1 (development events only) decides whether projected-footprint pooling proceeds to RQ2. It passes only if, over the five development events, (i) its mean AUROC gain over outline pooling is at least $+0.02$, (ii) it beats outline pooling on at least four of the five events, and (iii) its mean gain exceeds that of the random-direction shift of the same size; it is also reported against the dilated and ring controls. Recalibration passes its gate if its relative prevalence error is at most 50\% on at least four of five development events and lower than the training-average baseline's on at least four; an abstention counts as a miss for both.
 
 An audit on 31 October 2026 looked at confirmatory events in four limited ways: class and instance counts, footprint-to-SAR offsets, raw-signal AUROC and a building-count AUROC. No encoder features were computed and no setting was chosen from them. The offsets motivated projected-footprint pooling, which is therefore designed and gated on development events only. This disclosure will be part of the registered plan; at the freeze the plan is deposited with a time-stamped DOI, so that the record does not rest on a git tag alone.
 
@@ -379,11 +379,42 @@ Second, for DINOv3 we detect no difference between pooling the building and pool
 
 Third, the image-free control behaves very differently from event to event. In Beirut, building size and crowding alone reach 0.661, as high as either encoder, so the encoders' Beirut scores are not evidence that they see damage. In Congo and Libya the control falls well below chance (0.269 and 0.272; Libya's interval excludes 0.5), and Hawaii's 0.405 is also below it: the relationship between building geometry and damage that the probe learns on the other events is reversed on these. This is a shortcut that does not transfer, of the kind that a mixed split rewards and an event-held-out split exposes.
 
+\subsection{Label-Free Recalibration on the Development Events}
+\label{sec:res-c3}
+Table~\ref{tab:c3} gives the recalibration results for both encoders, with outline pooling. Neither passes the gate. For DINOv3 the method abstains on all five events: at the probe's threshold the pooled source separates damaged from intact buildings only weakly ($\mathrm{tpr}-\mathrm{fpr}$ of 0.05 to 0.20), below the 0.2 the rule requires, and in three events EM and BBSE also disagree. For the ImageNet probe it abstains on three events; on the other two, Hawaii and Libya, it estimates a prevalence of almost zero against true values of 0.71 and 0.35. There both EM and BBSE collapse to the boundary, so they agree and the disagreement check does not fire. The training-average baseline is also far off in these events (relative errors 0.80 and 0.58).
+
+\begin{table}[t]
+\centering
+\caption{Label-free prevalence on the development events (outline pooling). $J$: source $\mathrm{tpr}-\mathrm{fpr}$ at threshold 0.5. Abstentions in grey text: no estimate is reported.}
+\label{tab:c3}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llrrrrrl@{}}
+\toprule
+Encoder & Event & True & Baseline & EM & BBSE & $J$ & Outcome \\
+\midrule
+DINOv3 & Beirut & 0.031 & 0.218 & 0.100 & 0.000 & 0.08 & abstain \\
+DINOv3 & Congo & 0.091 & 0.190 & 0.007 & 0.000 & 0.05 & abstain \\
+DINOv3 & Hawaii & 0.711 & 0.145 & 0.000 & 0.000 & 0.17 & abstain \\
+DINOv3 & La Palma & 0.188 & 0.159 & 0.000 & 1.000 & 0.08 & abstain \\
+DINOv3 & Libya & 0.350 & 0.145 & 0.000 & 0.000 & 0.20 & abstain \\
+\midrule
+ImageNet & Beirut & 0.031 & 0.218 & 1.000 & 0.330 & 0.21 & abstain \\
+ImageNet & Congo & 0.091 & 0.190 & 0.000 & 0.000 & 0.15 & abstain \\
+ImageNet & Hawaii & 0.711 & 0.145 & 0.000 & 0.000 & 0.23 & estimate 0.000 \\
+ImageNet & La Palma & 0.188 & 0.159 & 1.000 & 1.000 & 0.04 & abstain \\
+ImageNet & Libya & 0.350 & 0.145 & 0.000 & 0.000 & 0.25 & estimate 0.000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+With probes this weak, label-free prevalence estimation is not usable: the source carries too little separation for either estimator, and EM is driven to the boundary in most events. The abstain rule refuses eight of ten cases, but it has a blind spot when both estimators fail in the same direction. Estimating a new event's damage rate without labels therefore needs a better-separating model first.
+
 % ---------------------------------------------------------------------------------------------------------------
 \section{Discussion and Limitations}
 \label{sec:discussion}
 
-\textbf{What the results say about the three explanations.} The evidence bears on each explanation of Section~\ref{sec:introduction} without settling any, and it comes from five development events and two encoders. \emph{Representation:} frozen features separate damaged from intact buildings clearly in some events and not at all in others, and which encoder does better depends on the event; for DINOv3 in wildfire and flood, the features do not carry damage in a form a linear probe can transfer. \emph{Evaluation:} outlines are offset from the SAR signal by one to two tokens in three of the six open labelled events (Table~\ref{tab:offsets}); most buildings in several events are smaller than a few tokens; and, for DINOv3, the surroundings alone reproduce the outline score. For this encoder at native resolution, we cannot distinguish a building-level score from a score of the building's neighbourhood. \emph{Calibration:} prevalence ranges from 3\% to 71\% across the open labelled events, and the image-free control shows that even the direction of the geometry--damage relationship changes between events. AUROC does not depend on prevalence, so the prevalence effect itself will show in threshold-based metrics and in recalibration, which are not reported here.
+\textbf{What the results say about the three explanations.} The evidence bears on each explanation of Section~\ref{sec:introduction} without settling any, and it comes from five development events and two encoders. \emph{Representation:} frozen features separate damaged from intact buildings clearly in some events and not at all in others, and which encoder does better depends on the event; for DINOv3 in wildfire and flood, the features do not carry damage in a form a linear probe can transfer. \emph{Evaluation:} outlines are offset from the SAR signal by one to two tokens in three of the six open labelled events (Table~\ref{tab:offsets}); most buildings in several events are smaller than a few tokens; and, for DINOv3, the surroundings alone reproduce the outline score. For this encoder at native resolution, we cannot distinguish a building-level score from a score of the building's neighbourhood. \emph{Calibration:} prevalence ranges from 3\% to 71\% across the open labelled events, and the image-free control shows that even the direction of the geometry--damage relationship changes between events. AUROC does not depend on prevalence, and label-free recalibration, which should correct for it, fails because the scores separate the classes too weakly (Section~\ref{sec:res-c3}).
 
 \textbf{What the design can and cannot show.} With five or six events, only large and consistent gains can be detected ($1.43\,s_g$ with six). Every comparison so far is inconclusive, and the per-event gains between the two encoders have an SD of 0.16; we therefore treat an inconclusive verdict as a real and reportable outcome, report the estimate and its interval whatever the verdict, and keep exploratory analyses separate from the primary claims.
 
@@ -404,7 +435,7 @@ Third, the image-free control behaves very differently from event to event. In B
 % ---------------------------------------------------------------------------------------------------------------
 \section{Conclusion}
 \label{sec:conclusion}
-DamageSAR-Bench evaluates frozen encoders on given building footprints in native SAR, one unseen disaster at a time, with image-free and neighbourhood controls and with the test labels locked until the analysis plan is frozen. On the BRIGHT development events, optical outlines sit 1.4 to 2.2 encoder tokens from the SAR signal where the offset is real, many buildings are smaller than a few tokens, a supervised ImageNet encoder has a higher mean AUROC than DINOv3 (within an inconclusive interval), and, for DINOv3, pooling only a building's surroundings gives the same score as pooling the building. On these events, what looks like damage recognition cannot be separated from context, which suggests that part of the failure on unseen disasters lies in how buildings are evaluated, not only in what the features encode. The next stage, fixed in advance, decides at Gate~1 whether projected-footprint pooling beats its controls where offsets are real, tests label-free recalibration, and runs the locked confirmatory test once on six events (five if Ukraine moves to the secondary set).
+DamageSAR-Bench evaluates frozen encoders on given building footprints in native SAR, one unseen disaster at a time, with image-free and neighbourhood controls and with the test labels locked until the analysis plan is frozen. On the BRIGHT development events, optical outlines sit 1.4 to 2.2 encoder tokens from the SAR signal where the offset is real, many buildings are smaller than a few tokens, a supervised ImageNet encoder has a higher mean AUROC than DINOv3 (within an inconclusive interval), and, for DINOv3, pooling only a building's surroundings gives the same score as pooling the building. On these events, what looks like damage recognition cannot be separated from context, which suggests that part of the failure on unseen disasters lies in how buildings are evaluated, not only in what the features encode. Label-free recalibration does not pass its gate: with these probes it abstains on eight of ten cases and fails on the other two, so estimating a new event's damage rate needs a better-separating model first. The next stage, fixed in advance, decides at Gate~1 whether projected-footprint pooling beats its controls where offsets are real, and runs the locked confirmatory test once on six events (five if Ukraine moves to the secondary set).
 
 % ---------------------------------------------------------------------------------------------------------------
 \section*{Data and Code Availability}
