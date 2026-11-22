@@ -164,6 +164,19 @@ auroc:
   texture_rf.footprint_ctx32m.la_palma: {expected: 0.687, kind: abs, tol: 0.005}
   texture_rf.footprint_ctx32m.libya: {expected: 0.449, kind: abs, tol: 0.005}
   texture_rf.footprint_ctx32m.mean5: {expected: 0.584, kind: abs, tol: 0.005}
+# p05 (22 Nov 2026, main @ 8497efc): confound controls. r01 step 5g rebuilds these.
+  dinov3_vitb16_fp32.native.outline.beirut: {expected: 0.653, kind: abs, tol: 0.005}
+  dinov3_vitb16_fp32.native.outline.congo: {expected: 0.848, kind: abs, tol: 0.005}
+  dinov3_vitb16_fp32.native.outline.hawaii: {expected: 0.506, kind: abs, tol: 0.005}
+  dinov3_vitb16_fp32.native.outline.la_palma: {expected: 0.611, kind: abs, tol: 0.005}
+  dinov3_vitb16_fp32.native.outline.libya: {expected: 0.504, kind: abs, tol: 0.005}
+  dinov3_vitb16_fp32.native.outline.mean5: {expected: 0.624, kind: abs, tol: 0.005}
+  dinov3_vitl16_satnorm.native.outline.beirut: {expected: 0.568, kind: abs, tol: 0.005}
+  dinov3_vitl16_satnorm.native.outline.congo: {expected: 0.907, kind: abs, tol: 0.005}
+  dinov3_vitl16_satnorm.native.outline.hawaii: {expected: 0.584, kind: abs, tol: 0.005}
+  dinov3_vitl16_satnorm.native.outline.la_palma: {expected: 0.628, kind: abs, tol: 0.005}
+  dinov3_vitl16_satnorm.native.outline.libya: {expected: 0.545, kind: abs, tol: 0.005}
+  dinov3_vitl16_satnorm.native.outline.mean5: {expected: 0.646, kind: abs, tol: 0.005}
 # Table IV: event-level comparisons (5 events, 95% t-interval, 4 df)
 comparisons:
   "0.3m vs native (outline)":      {estimate: -0.030, lower: -0.122, upper: 0.062, verdict: "Inconclusive"}
@@ -191,6 +204,11 @@ comparisons:
   "DINOv3 ViT-B probe vs texture":    {estimate: 0.022, lower: -0.243, upper: 0.288, verdict: "Inconclusive"}
   "ImageNet probe vs texture":        {estimate: 0.066, lower: -0.063, upper: 0.194, verdict: "Inconclusive"}
   "satellite ViT-L probe vs texture": {estimate: 0.167, lower: 0.040, upper: 0.294, verdict: "Supported: a worthwhile gain"}
+  # p05 (exploratory, development events)
+  "DINOv3 ViT-B: fp32 vs fp16":                          {estimate: 0.004, lower: 0.000, upper: 0.009, verdict: "Not a worthwhile gain"}
+  "DINOv3 ViT-L web: satellite vs ImageNet statistics":  {estimate: -0.002, lower: -0.114, upper: 0.110, verdict: "Inconclusive"}
+  "DINOv3 ViT-L: satellite vs web, same statistics":     {estimate: 0.119, lower: -0.030, upper: 0.268, verdict: "Inconclusive"}
+  "DINOv3 web, fp32: ViT-L vs ViT-B":                    {estimate: 0.025, lower: -0.045, upper: 0.094, verdict: "Inconclusive"}
 comparison_tol: {estimate: 0.005, bounds: 0.01}
 
 # Section VI-A: footprint-to-SAR offsets per tile (c07 / r01 step 5b; CPU, deterministic: seed 0).

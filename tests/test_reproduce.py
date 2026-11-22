@@ -14,12 +14,12 @@ def test_expected_values_file_loads_and_covers_the_paper_tables():
     ids = set(exp["id"])
     assert {"buildings.total", "tiles.total", "auroc.native.outline.congo", "tokens.lt4.target.beirut",
             "cmp.0.3m vs native (outline).verdict", "all_converged"} <= ids
-    assert len([i for i in ids if i.startswith("auroc.")]) == 87          # Table III (20) + mean; p03 5 x (5 + mean);
+    assert len([i for i in ids if i.startswith("auroc.")]) == 99          # Table III (20) + mean; p03 5 x (5 + mean);
     #                                                                       p04 3 x (5 + mean); g01 C2 5 + mean;
-    #                                                                       b02 2 x (5 + mean)
+    #                                                                       b02 2 x (5 + mean); p05 2 x (5 + mean)
     assert {"gate1.mean_gain", "gate1.n_better", "gate1.passed"} <= ids
     assert len([i for i in ids if i.startswith("tokens.")]) == 22         # Table II, 11 events x 2
-    assert len([i for i in ids if i.startswith("cmp.")]) == 84            # Table IV 4 + p03 6 + p04 3 + g01 3 + b02 5, x 4
+    assert len([i for i in ids if i.startswith("cmp.")]) == 100           # Table IV 4 + p03 6 + p04 3 + g01 3 + b02 5 + p05 4, x 4
 
 
 def test_collect_and_compare_on_a_tiny_run():
@@ -90,7 +90,7 @@ def test_the_recorded_p02b_values_pass_their_own_check():
         {"label": "dilated3m vs outline (0.3m)", "estimate": 0.005045718398, "lower": -0.007513302966,
          "upper": 0.01760473976, "verdict": "Not a worthwhile gain"}])
     rep = compare(exp, collect_actual(event_metrics=m, comparisons=c))
-    sub = rep[rep["id"].str.startswith(("auroc.", "cmp.")) & ~rep["id"].isin(P03_IDS(exp) | LATER_IDS(exp) | B02_IDS(exp))]
+    sub = rep[rep["id"].str.startswith(("auroc.", "cmp.")) & ~rep["id"].isin(P03_IDS(exp) | LATER_IDS(exp) | B02_IDS(exp) | P05_IDS(exp))]
     assert len(sub) == 37 and (sub["status"] == "PASS").all(), sub[sub["status"] != "PASS"]
 
 
@@ -179,7 +179,7 @@ G01_LABELS = ("C2 matched vs outline", "C2 matched vs dilated 3 m", "C2 matched 
 def LATER_IDS(exp):
     """Ids added by p04 and g01 (22 Nov)."""
     ids = exp["id"]
-    return set(ids[ids.str.contains("dinov2_vitb14|dinov3_vitl16|matched\\.") | ids.str.startswith(
+    return set(ids[ids.str.contains("dinov2_vitb14\\.|dinov3_vitl16\\.|dinov3_vitl16_sat\\.|matched\\.") | ids.str.startswith(
         tuple(f"cmp.{lab}." for lab in P04_LABELS + G01_LABELS))])
 
 
@@ -233,3 +233,31 @@ def test_the_recorded_b02_values_pass_their_own_check():
     rep = compare(exp, collect_actual(event_metrics=m, comparisons=c))
     sub = rep[rep["id"].isin(B02_IDS(exp))]
     assert len(sub) == 12 + 20 and (sub["status"] == "PASS").all(), sub[sub["status"] != "PASS"]
+
+
+P05_LABELS = ("DINOv3 ViT-B: fp32 vs fp16", "DINOv3 ViT-L web: satellite vs ImageNet statistics",
+              "DINOv3 ViT-L: satellite vs web, same statistics", "DINOv3 web, fp32: ViT-L vs ViT-B")
+
+
+def P05_IDS(exp):
+    """Ids added by p05 (22 Nov)."""
+    ids = exp["id"]
+    return set(ids[ids.str.contains("dinov3_vitb16_fp32|dinov3_vitl16_satnorm")
+                   | ids.str.startswith(tuple(f"cmp.{lab}." for lab in P05_LABELS))])
+
+
+def test_the_recorded_p05_values_pass_their_own_check():
+    exp = load_expected(ROOT / "paper" / "expected_values.yaml")
+    ev = ["beirut", "congo", "hawaii", "la_palma", "libya"]
+    rows = {("dinov3_vitb16_fp32@native", "outline"): [0.653, 0.848, 0.506, 0.611, 0.504],
+            ("dinov3_vitl16_satnorm@native", "outline"): [0.568, 0.907, 0.584, 0.628, 0.545]}
+    m = pd.DataFrame([{"encoder": e, "pooling": p, "event": x, "role": "development", "auroc": a}
+                      for (e, p), v in rows.items() for x, a in zip(ev, v)])
+    c = pd.DataFrame([
+        {"label": P05_LABELS[0], "estimate": 0.004, "lower": -0.0003, "upper": 0.009, "verdict": "Not a worthwhile gain"},
+        {"label": P05_LABELS[1], "estimate": -0.002, "lower": -0.114, "upper": 0.110, "verdict": "Inconclusive"},
+        {"label": P05_LABELS[2], "estimate": 0.119, "lower": -0.030, "upper": 0.268, "verdict": "Inconclusive"},
+        {"label": P05_LABELS[3], "estimate": 0.025, "lower": -0.045, "upper": 0.094, "verdict": "Inconclusive"}])
+    rep = compare(exp, collect_actual(event_metrics=m, comparisons=c))
+    sub = rep[rep["id"].isin(P05_IDS(exp))]
+    assert len(sub) == 12 + 16 and (sub["status"] == "PASS").all(), sub[sub["status"] != "PASS"]
