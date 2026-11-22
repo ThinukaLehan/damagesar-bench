@@ -14,9 +14,9 @@ def test_expected_values_file_loads_and_covers_the_paper_tables():
     ids = set(exp["id"])
     assert {"buildings.total", "tiles.total", "auroc.native.outline.congo", "tokens.lt4.target.beirut",
             "cmp.0.3m vs native (outline).verdict", "all_converged"} <= ids
-    assert len([i for i in ids if i.startswith("auroc.")]) == 21          # Table III (20) + mean
+    assert len([i for i in ids if i.startswith("auroc.")]) == 51          # Table III (20) + mean; p03 5 x (5 + mean)
     assert len([i for i in ids if i.startswith("tokens.")]) == 22         # Table II, 11 events x 2
-    assert len([i for i in ids if i.startswith("cmp.")]) == 16            # Table IV, 4 comparisons x 4
+    assert len([i for i in ids if i.startswith("cmp.")]) == 40            # Table IV 4 + p03 6 comparisons, x 4
 
 
 def test_collect_and_compare_on_a_tiny_run():
@@ -87,8 +87,41 @@ def test_the_recorded_p02b_values_pass_their_own_check():
         {"label": "dilated3m vs outline (0.3m)", "estimate": 0.005045718398, "lower": -0.007513302966,
          "upper": 0.01760473976, "verdict": "Not a worthwhile gain"}])
     rep = compare(exp, collect_actual(event_metrics=m, comparisons=c))
-    sub = rep[rep["id"].str.startswith(("auroc.", "cmp."))]
-    assert (sub["status"] == "PASS").all(), sub[sub["status"] != "PASS"]
+    sub = rep[rep["id"].str.startswith(("auroc.", "cmp.")) & ~rep["id"].isin(P03_IDS(exp))]
+    assert len(sub) == 37 and (sub["status"] == "PASS").all(), sub[sub["status"] != "PASS"]
+
+
+P03_LABELS = ("DINOv3 vs ImageNet (outline)", "building vs surroundings (DINOv3)",
+              "building vs surroundings (ImageNet)", "DINOv3 vs image-free", "ImageNet vs image-free",
+              "dilated3m vs outline (ImageNet)")
+
+
+def P03_IDS(exp):
+    ids = exp["id"]
+    return set(ids[ids.str.contains("imagenet|imagefree|ring10m") | ids.str.startswith(
+        tuple(f"cmp.{lab}." for lab in P03_LABELS))])
+
+
+def test_the_recorded_p03_values_pass_their_own_check():
+    exp = load_expected(ROOT / "paper" / "expected_values.yaml")
+    ev = ["beirut", "congo", "hawaii", "la_palma", "libya"]
+    rows = {("dinov3_vitb16@native", "ring10m"): [0.654, 0.853, 0.549, 0.533, 0.503],
+            ("imagenet_vitb16@native", "outline"): [0.465, 0.781, 0.716, 0.755, 0.600],
+            ("imagenet_vitb16@native", "dilated3m"): [0.451, 0.821, 0.710, 0.780, 0.603],
+            ("imagenet_vitb16@native", "ring10m"): [0.385, 0.697, 0.727, 0.815, 0.542],
+            ("imagefree", "geometry"): [0.661, 0.269, 0.405, 0.544, 0.272]}
+    m = pd.DataFrame([{"encoder": e, "pooling": p, "event": x, "role": "development", "auroc": a}
+                      for (e, p), v in rows.items() for x, a in zip(ev, v)])
+    c = pd.DataFrame([
+        {"label": P03_LABELS[0], "estimate": -0.04333542712, "lower": -0.2460759583, "upper": 0.1594051041},
+        {"label": P03_LABELS[1], "estimate": 0.001901997863, "lower": -0.05053086865, "upper": 0.05433486437},
+        {"label": P03_LABELS[2], "estimate": 0.030, "lower": -0.048, "upper": 0.109},
+        {"label": P03_LABELS[3], "estimate": 0.190, "lower": -0.102, "upper": 0.482},
+        {"label": P03_LABELS[4], "estimate": 0.234, "lower": -0.094, "upper": 0.561},
+        {"label": P03_LABELS[5], "estimate": 0.009, "lower": -0.018, "upper": 0.037}]).assign(verdict="Inconclusive")
+    rep = compare(exp, collect_actual(event_metrics=m, comparisons=c))
+    sub = rep[rep["id"].isin(P03_IDS(exp))]
+    assert len(sub) == 54 and (sub["status"] == "PASS").all(), sub[sub["status"] != "PASS"]
 
 
 def test_errors_and_environment(tmp_path):
@@ -111,3 +144,23 @@ def test_offsets_are_collected_and_checked():
     assert got["offsets.share_beats_null.congo"] == 0.728
     rep = compare(exp[exp["id"].str.endswith(".congo") & exp["id"].str.startswith("offsets.")], got)
     assert (rep["status"] == "PASS").all()
+
+
+def test_other_encoders_get_their_own_ids():
+    from damagesar_bench.reproduce import _setting_key
+
+    assert _setting_key("dinov3_vitb16@native") == "native"
+    assert _setting_key("dinov3_vitb16@0.3m") == "0.3m"
+    assert _setting_key("imagenet_vitb16@native") == "imagenet.native"
+    assert _setting_key("imagefree") == "imagefree"
+    m = pd.DataFrame({
+        "encoder": ["dinov3_vitb16@native"] * 2 + ["imagenet_vitb16@native"] * 2 + ["imagefree"] * 2,
+        "pooling": ["outline", "outline", "outline", "outline", "geometry", "geometry"],
+        "event": ["beirut", "congo"] * 3, "role": ["development"] * 6,
+        "auroc": [0.646, 0.849, 0.465, 0.781, 0.661, 0.269]})
+    got = collect_actual(event_metrics=m)
+    assert got["auroc.native.outline.beirut"] == 0.646  # not overwritten by ImageNet
+    assert got["auroc.imagenet.native.outline.beirut"] == 0.465
+    assert got["auroc.imagefree.geometry.congo"] == 0.269
+    assert got["auroc.native.outline.mean5"] == round((0.646 + 0.849) / 2, 3)
+    assert got["auroc.imagenet.native.outline.mean5"] == 0.623
