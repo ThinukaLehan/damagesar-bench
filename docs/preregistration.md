@@ -46,7 +46,7 @@ Classification of **given building footprints** as damaged-or-destroyed vs intac
 - **Power (pre-registered method):** minimum detectable mean gain for a two-sided one-sample t-test at 5% with 80% power, solved exactly with the noncentral t distribution: **1.43 SD with 6 events, 1.68 SD with 5** (normal approximation 1.14 SD; quick t approximation 1.42 SD). Pilot-SD rule: SD ≤ 0.020 proceed; 0.020 < SD ≤ 0.035 lead with the estimate; SD > 0.035 lead with the secondary estimate.
 
 ## 6. Gates
-- **Gate 1 (18 Dec 2026, C2):** mean ΔAUROC ≥ +0.02 over the 5 development events, better than outline pooling in ≥ 4 of 5, and better than a random-shift null. Shift rule: TBD (fixed before any AUROC is computed). **Proposed null rule (to agree):** run the random-shift control R times (same shift-size distribution, different random directions); projected passes if its mean gain is above the 95th percentile of the R random-shift mean gains (R = 1 reduces to "strictly larger"). A gain of exactly 0 does not count as "better". Implemented in `stats/gates.py`.
+- **Gate 1 (18 Dec 2026, C2):** mean ΔAUROC ≥ +0.02 over the 5 development events, better than outline pooling in ≥ 4 of 5, and better than a random-shift null. Shift rule: **fixed 22 Nov 2026, before any C2 AUROC was computed** (see *C2 rule* below). **Proposed null rule (to agree):** run the random-shift control R times (same shift-size distribution, different random directions); projected passes if its mean gain is above the 95th percentile of the R random-shift mean gains (R = 1 reduces to "strictly larger"). A gain of exactly 0 does not count as "better". Implemented in `stats/gates.py`.
 - **C3 (early Jan):** relative prevalence error ≤ 50% on ≥ 4 of 5 development events and better than the training-average baseline. **Proposed (to agree):** "better" = a lower relative error than the training-average baseline on at least 4 of the same 5 development events. Abstain thresholds: TBD.
 - **Gate 2:** definition TBD with supervisor (proposed: locked run executed once + new-event mode tested, ~25 Jan 2027).
 
@@ -58,3 +58,19 @@ The 31 Oct 2026 audit (tag `audit-2026-10-31`) looked at confirmatory events in 
 
 ## 8. Deviations
 _None yet._ Any change after the freeze is listed here with its date and reason.
+
+## C2 rule (fixed 22 Nov 2026, before any C2 AUROC was computed)
+
+- **C2 as tested at Gate 1 = image-matched projected pooling.** Each tile's footprints are moved by that tile's
+  measured footprint-to-SAR offset (`c2_offsets.measure_offsets`: cross-correlation of the rasterised footprints
+  with the SAR image at 1/4 resolution within ±40 m, seed 0, 3 permutation-null tiles; no labels are read), **only
+  where the offset is real**: peak_z ≥ 3 **and** it beats every null tile. Other tiles are pooled as drawn.
+  Pooling is otherwise outline pooling (`pooling: matched`). Encoder: DINOv3 ViT-B/16, native resolution.
+- **Why image-matched rather than geometric:** the geometric shift h·cot θ needs building heights, which BRIGHT
+  does not provide, and viewing geometry is missing for several events. The measured offset needs neither.
+- **Random-shift null:** R = 10 draws (`pooling: rshift:0` … `rshift:9`); each moves every tile by the **same
+  distance** as C2 in a uniformly random direction (seeded by tile and draw); tiles C2 does not move are not moved.
+- **Gate 1 rule unchanged:** mean gain over outline ≥ +0.02 over the 5 development events, better on ≥ 4 of 5,
+  and mean gain above the 95th percentile of the 10 null mean gains (`stats/gates.gate1`).
+- **Reported but not part of the gate:** C2 against dilated 3 m and against the 10 m ring.
+- **Notebook:** `notebooks/pipeline/g01_gate1_c2_matched_pooling.ipynb`.

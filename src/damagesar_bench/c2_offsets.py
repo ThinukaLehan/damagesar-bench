@@ -201,3 +201,18 @@ def measure_offsets(buildings: pd.DataFrame, read_tile, events: list[str], facto
         log(f"{ev}: {len(tiles)} tiles")
         cache.clear()
     return pd.DataFrame(rows)
+
+
+def matched_shifts(offsets: pd.DataFrame, peak_z_min: float = 3.0) -> dict[str, tuple[float, float]]:
+    """Per-tile shifts for ``matched`` pooling (C2): the measured (dy_m, dx_m) where the offset is real.
+
+    A tile's offset is used only if it is confident (``peak_z >= peak_z_min``) AND beats the permutation null
+    (``beats_null``); every other tile gets (0, 0), so its footprints are pooled as drawn. Fixed before any
+    C2 AUROC is computed (pre-registration, Gate 1).
+    """
+    need = {"tile_id", "dy_m", "dx_m", "peak_z", "beats_null"}
+    if not need <= set(offsets.columns):
+        raise OffsetError(f"offsets need columns {sorted(need)}")
+    use = offsets["peak_z"].ge(peak_z_min) & offsets["beats_null"].astype(bool)
+    return {t: ((float(dy), float(dx)) if u else (0.0, 0.0))
+            for t, dy, dx, u in zip(offsets["tile_id"], offsets["dy_m"], offsets["dx_m"], use)}

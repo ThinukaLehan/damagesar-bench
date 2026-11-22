@@ -14,6 +14,7 @@ Design (ADR 0003):
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import os
@@ -100,12 +101,20 @@ class ExtractReport:
     shards: list[Path] = field(default_factory=list)
 
 
+def _shifts_sha(shifts: dict[str, tuple[float, float]] | None) -> str | None:
+    """Fingerprint of the per-tile shifts, so a folder is never resumed with different shifts."""
+    if shifts is None:
+        return None
+    text = json.dumps(sorted((k, round(float(a), 4), round(float(b), 4)) for k, (a, b) in shifts.items()))
+    return hashlib.sha256(text.encode()).hexdigest()[:16]
+
+
 def _check_manifest(out: Path, manifest: dict) -> None:
     p = out / MANIFEST
     if p.exists():
         old = json.loads(p.read_text())
-        keys = ("encoder", "methods", "target_res_m", "patch_px", "dim")
-        diff = {k: (old.get(k), manifest[k]) for k in keys if old.get(k) != manifest[k]}
+        keys = ("encoder", "methods", "target_res_m", "patch_px", "dim", "shifts_sha")
+        diff = {k: (old.get(k), manifest.get(k)) for k in keys if old.get(k) != manifest.get(k)}
         if diff:
             raise EncoderError(f"{out} holds shards made with other settings {diff}; use a new folder")
     else:
@@ -124,6 +133,7 @@ def extract(
     target_res_m: float | None = None,
     include_confirmatory: bool = False,
     log: Callable[[str], None] = lambda s: None,
+    shifts: dict[str, tuple[float, float]] | None = None,
 ) -> tuple[pd.DataFrame, ExtractReport]:
     out = Path(out_dir)
     parsed = [Method.parse(m) for m in methods]
@@ -132,6 +142,7 @@ def extract(
     _check_manifest(out, {
         "encoder": encoder.name, "methods": [m.name for m in parsed], "target_res_m": target_res_m,
         "patch_px": encoder.patch_px, "dim": encoder.dim, "tool_version": __version__,
+        **({"shifts_sha": _shifts_sha(shifts)} if any(m.shifted for m in parsed) else {}),
     })
     shard_dir = out / "shards"
     shard_dir.mkdir(parents=True, exist_ok=True)
@@ -155,7 +166,7 @@ def extract(
         size = encoder_input_size(geom, encoder.patch_px, target_res_m)
         tokens = encoder.encode(resample(image, *size))
         tb = kept[kept["tile_id"] == tile_id]
-        parts = [pool_features(tb, lambda _t: tokens, lambda _t: geom, encoder.name, m, events, today)
+        parts = [pool_features(tb, lambda _t: tokens, lambda _t: geom, encoder.name, m, events, today, shifts)
                  for m in methods]
         tmp = shard.with_suffix(".parquet.tmp")
         pd.concat(parts, ignore_index=True).to_parquet(tmp, index=False)
