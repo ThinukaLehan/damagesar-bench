@@ -61,6 +61,7 @@ class HFViT(Encoder):
     revision: str | None = None   # Hugging Face commit to load; None = latest (the run records which it got)
     needs_interpolation = False   # True for models with fixed 224 px position embeddings
     norm_stats: tuple | None = None  # (mean, std) per RGB channel; None = ImageNet statistics
+    half_precision = True            # fp16 on GPU; False where fp16 overflows (DINOv3 ViT-L gives inf/NaN)
 
     def __init__(self, device: str | None = None, fp16: bool = True):
         try:
@@ -70,7 +71,7 @@ class HFViT(Encoder):
             raise EncoderError("install the ml extra: pip install -e '.[ml]'") from ex
         self._torch = torch
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        self.dtype = torch.float16 if (fp16 and self.device == "cuda") else torch.float32
+        self.dtype = torch.float16 if (fp16 and self.half_precision and self.device == "cuda") else torch.float32
         rev = os.environ.get(f"DSB_REVISION_{self.name.upper()}") or self.revision
         self.model = AutoModel.from_pretrained(self.model_id, torch_dtype=self.dtype, revision=rev).to(self.device).eval()
         # The exact weights used: the Hugging Face commit the files came from (recorded for reproducibility).
@@ -103,6 +104,7 @@ class DINOv3ViTL16(HFViT):
     """DINOv3 ViT-L/16, web images (LVD-1689M): the size-matched partner of the satellite model."""
     name = "dinov3_vitl16"
     model_id = "facebook/dinov3-vitl16-pretrain-lvd1689m"
+    half_precision = False   # fp16 activations overflow to inf/NaN at 1024 px (p04, 22 Nov 2026)
 
 
 @register("dinov3_vitl16_sat")
@@ -110,6 +112,7 @@ class DINOv3ViTL16Sat(HFViT):
     """DINOv3 ViT-L/16 pretrained on satellite images (SAT-493M), with the statistics Meta gives for it."""
     name = "dinov3_vitl16_sat"
     model_id = "facebook/dinov3-vitl16-pretrain-sat493m"
+    half_precision = False   # same overflow as the web ViT-L; run in fp32
     norm_stats = ((0.430, 0.411, 0.296), (0.213, 0.156, 0.143))
 
 

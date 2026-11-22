@@ -252,3 +252,10 @@ def test_dinov3_large_encoders_are_registered_with_their_statistics():
     assert DINOv3ViTL16.model_id.endswith("lvd1689m") and DINOv3ViTL16.norm_stats is None
     assert DINOv3ViTL16Sat.model_id.endswith("sat493m")
     assert DINOv3ViTL16Sat.norm_stats[0] == (0.430, 0.411, 0.296) != IMAGENET_MEAN
+
+
+def test_vitl_encoders_run_in_full_precision():
+    from damagesar_bench.encoders.hf import DINOv3ViTB16, DINOv3ViTL16, DINOv3ViTL16Sat
+
+    assert DINOv3ViTB16.half_precision is True
+    assert DINOv3ViTL16.half_precision is False and DINOv3ViTL16Sat.half_precision is False
