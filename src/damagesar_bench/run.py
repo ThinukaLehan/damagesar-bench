@@ -43,6 +43,7 @@ class ComparisonSpec:
     a: tuple[str, str]   # (encoder, pooling)
     b: tuple[str, str]
     label: str = ""
+    primary: bool = True   # False: never reported as confirmatory, even in the locked run (e.g. RQ3/RQ4 checks)
 
     @classmethod
     def parse(cls, text: str) -> "ComparisonSpec":
@@ -157,7 +158,7 @@ def run_benchmark(
         r = compare(metrics, c.a, c.b, events=ev_list, level=level)
         rows.append({
             "label": c.label, "a": "/".join(c.a), "b": "/".join(c.b),
-            "strength": "confirmatory" if (phase == "locked" and ev_list is not None
+            "strength": "confirmatory" if (c.primary and phase == "locked" and ev_list is not None
                                            and set(ev_list) == set(events.keys_with_role("confirmatory")))
             else "exploratory",
             "n_events": r.interval.n, "events": "+".join(r.gains.index),

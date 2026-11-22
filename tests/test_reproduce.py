@@ -14,9 +14,12 @@ def test_expected_values_file_loads_and_covers_the_paper_tables():
     ids = set(exp["id"])
     assert {"buildings.total", "tiles.total", "auroc.native.outline.congo", "tokens.lt4.target.beirut",
             "cmp.0.3m vs native (outline).verdict", "all_converged"} <= ids
-    assert len([i for i in ids if i.startswith("auroc.")]) == 51          # Table III (20) + mean; p03 5 x (5 + mean)
+    assert len([i for i in ids if i.startswith("auroc.")]) == 87          # Table III (20) + mean; p03 5 x (5 + mean);
+    #                                                                       p04 3 x (5 + mean); g01 C2 5 + mean;
+    #                                                                       b02 2 x (5 + mean)
+    assert {"gate1.mean_gain", "gate1.n_better", "gate1.passed"} <= ids
     assert len([i for i in ids if i.startswith("tokens.")]) == 22         # Table II, 11 events x 2
-    assert len([i for i in ids if i.startswith("cmp.")]) == 40            # Table IV 4 + p03 6 comparisons, x 4
+    assert len([i for i in ids if i.startswith("cmp.")]) == 84            # Table IV 4 + p03 6 + p04 3 + g01 3 + b02 5, x 4
 
 
 def test_collect_and_compare_on_a_tiny_run():
@@ -87,7 +90,7 @@ def test_the_recorded_p02b_values_pass_their_own_check():
         {"label": "dilated3m vs outline (0.3m)", "estimate": 0.005045718398, "lower": -0.007513302966,
          "upper": 0.01760473976, "verdict": "Not a worthwhile gain"}])
     rep = compare(exp, collect_actual(event_metrics=m, comparisons=c))
-    sub = rep[rep["id"].str.startswith(("auroc.", "cmp.")) & ~rep["id"].isin(P03_IDS(exp))]
+    sub = rep[rep["id"].str.startswith(("auroc.", "cmp.")) & ~rep["id"].isin(P03_IDS(exp) | LATER_IDS(exp) | B02_IDS(exp))]
     assert len(sub) == 37 and (sub["status"] == "PASS").all(), sub[sub["status"] != "PASS"]
 
 
@@ -167,3 +170,66 @@ def test_other_encoders_get_their_own_ids():
     assert got["auroc.imagefree.geometry.congo"] == 0.269
     assert got["auroc.native.outline.mean5"] == round((0.646 + 0.849) / 2, 3)
     assert got["auroc.imagenet.native.outline.mean5"] == 0.623
+
+
+P04_LABELS = ("DINOv3-L satellite vs web", "DINOv3 ViT-L vs ViT-B (web)", "DINOv3 vs DINOv2 (ViT-B)")
+G01_LABELS = ("C2 matched vs outline", "C2 matched vs dilated 3 m", "C2 matched vs ring 10 m")
+
+
+def LATER_IDS(exp):
+    """Ids added by p04 and g01 (22 Nov)."""
+    ids = exp["id"]
+    return set(ids[ids.str.contains("dinov2_vitb14|dinov3_vitl16|matched\\.") | ids.str.startswith(
+        tuple(f"cmp.{lab}." for lab in P04_LABELS + G01_LABELS))])
+
+
+def test_the_recorded_p04_and_g01_values_pass_their_own_check():
+    exp = load_expected(ROOT / "paper" / "expected_values.yaml")
+    ev = ["beirut", "congo", "hawaii", "la_palma", "libya"]
+    rows = {("dinov2_vitb14@native", "outline"): [0.437, 0.889, 0.591, 0.545, 0.386],
+            ("dinov3_vitl16@native", "outline"): [0.709, 0.878, 0.586, 0.634, 0.437],
+            ("dinov3_vitl16_sat@native", "outline"): [0.742, 0.827, 0.755, 0.856, 0.646],
+            ("dinov3_vitb16@native", "matched"): [0.636, 0.855, 0.493, 0.643, 0.509]}
+    m = pd.DataFrame([{"encoder": e, "pooling": p, "event": x, "role": "development", "auroc": a}
+                      for (e, p), v in rows.items() for x, a in zip(ev, v)])
+    c = pd.DataFrame([
+        {"label": P04_LABELS[0], "estimate": 0.117, "lower": -0.033, "upper": 0.266},
+        {"label": P04_LABELS[1], "estimate": 0.029, "lower": -0.040, "upper": 0.097},
+        {"label": P04_LABELS[2], "estimate": 0.051, "lower": -0.097, "upper": 0.198},
+        {"label": G01_LABELS[0], "estimate": 0.007, "lower": -0.018, "upper": 0.033},
+        {"label": G01_LABELS[1], "estimate": 0.010, "lower": -0.021, "upper": 0.041},
+        {"label": G01_LABELS[2], "estimate": 0.009, "lower": -0.067, "upper": 0.086}]).assign(verdict="Inconclusive")
+    got = collect_actual(event_metrics=m, comparisons=c)
+    got.update({"gate1.mean_gain": 0.007, "gate1.n_better": 3, "gate1.passed": False})
+    rep = compare(exp, got)
+    sub = rep[rep["id"].isin(LATER_IDS(exp)) | rep["id"].str.startswith("gate1.")]
+    assert len(sub) == 24 + 24 + 3 and (sub["status"] == "PASS").all(), sub[sub["status"] != "PASS"]
+
+
+B02_LABELS = ("texture vs image-free", "texture context vs footprint", "DINOv3 ViT-B probe vs texture",
+              "ImageNet probe vs texture", "satellite ViT-L probe vs texture")
+
+
+def B02_IDS(exp):
+    """Ids added by b02 (22 Nov)."""
+    ids = exp["id"]
+    return set(ids[ids.str.contains("texture_rf") | ids.str.startswith(tuple(f"cmp.{lab}." for lab in B02_LABELS))])
+
+
+def test_the_recorded_b02_values_pass_their_own_check():
+    exp = load_expected(ROOT / "paper" / "expected_values.yaml")
+    ev = ["beirut", "congo", "hawaii", "la_palma", "libya"]
+    rows = {("texture_rf", "footprint"): [0.474, 0.545, 0.696, 0.765, 0.510],
+            ("texture_rf", "footprint_ctx32m"): [0.459, 0.633, 0.692, 0.687, 0.449]}
+    m = pd.DataFrame([{"encoder": e, "pooling": p, "event": x, "role": "development", "auroc": a}
+                      for (e, p), v in rows.items() for x, a in zip(ev, v)])
+    c = pd.DataFrame([
+        {"label": B02_LABELS[0], "estimate": 0.1680, "lower": -0.0812, "upper": 0.4172, "verdict": "Inconclusive"},
+        {"label": B02_LABELS[1], "estimate": -0.0140, "lower": -0.0947, "upper": 0.0666, "verdict": "Inconclusive"},
+        {"label": B02_LABELS[2], "estimate": 0.0222, "lower": -0.2434, "upper": 0.2879, "verdict": "Inconclusive"},
+        {"label": B02_LABELS[3], "estimate": 0.0656, "lower": -0.0632, "upper": 0.1943, "verdict": "Inconclusive"},
+        {"label": B02_LABELS[4], "estimate": 0.1674, "lower": 0.0404, "upper": 0.2943,
+         "verdict": "Supported: a worthwhile gain"}])
+    rep = compare(exp, collect_actual(event_metrics=m, comparisons=c))
+    sub = rep[rep["id"].isin(B02_IDS(exp))]
+    assert len(sub) == 12 + 20 and (sub["status"] == "PASS").all(), sub[sub["status"] != "PASS"]

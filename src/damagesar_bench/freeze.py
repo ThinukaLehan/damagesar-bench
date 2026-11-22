@@ -28,6 +28,7 @@ from .config import EventsConfig
 from .data.events import UNLOCK_ENV
 
 FIELDS = ("date", "tag", "doi", "level")
+RQ1_ENCODERS = ("dinov3_vitb16", "dinov3_vitl16_sat")   # the DINOv3 model compared with ImageNet in RQ1
 DOI_RE = re.compile(r"^10\.\d{4,9}/\S+$")
 
 
@@ -41,6 +42,7 @@ class FreezeRecord:
     tag: str
     doi: str
     level: float
+    rq1_encoder: str = "dinov3_vitb16"
 
 
 def read_record(path: str | Path) -> FreezeRecord:
@@ -49,7 +51,7 @@ def read_record(path: str | Path) -> FreezeRecord:
         raise FreezeError(f"no freeze record at {p}: the plan is not frozen")
     vals: dict[str, str] = {}
     for line in p.read_text(encoding="utf-8").splitlines():
-        m = re.match(r"^\s*(date|tag|doi|level)\s*:\s*(\S+)\s*$", line)
+        m = re.match(r"^\s*(date|tag|doi|level|rq1_encoder)\s*:\s*(\S+)\s*$", line)
         if m:
             vals[m.group(1)] = m.group(2)
     missing = [f for f in FIELDS if not vals.get(f)]
@@ -64,7 +66,10 @@ def read_record(path: str | Path) -> FreezeRecord:
         d = date.fromisoformat(vals["date"])
     except ValueError:
         raise FreezeError(f"freeze date {vals['date']!r} is not YYYY-MM-DD") from None
-    return FreezeRecord(d, vals["tag"], vals["doi"], level)
+    enc = vals.get("rq1_encoder", "dinov3_vitb16")
+    if enc not in RQ1_ENCODERS:
+        raise FreezeError(f"rq1_encoder {enc!r} must be one of {RQ1_ENCODERS}")
+    return FreezeRecord(d, vals["tag"], vals["doi"], level, enc)
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:

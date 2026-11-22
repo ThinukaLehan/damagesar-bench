@@ -34,6 +34,11 @@ data:
   prevalence.min_unlocked_pct: {expected: 3.1,  kind: abs, tol: 0.05, paper: "I; III-C (unlocked events)"}
   prevalence.max_unlocked_pct: {expected: 71.1, kind: abs, tol: 0.05, paper: "I; III-C (unlocked events)"}
 
+  # g01 Gate 1 verdict (rule in stats/gates.py; r01 step 5e recomputes it from its own C2 and random-shift runs)
+  gate1.mean_gain: {expected: 0.007, kind: abs, tol: 0.005}
+  gate1.n_better: {expected: 3, kind: exact}
+  gate1.passed: {expected: false, kind: exact}
+
 # Table II: % of kept buildings covering fewer than 4 ViT/16 tokens (geometry only; allowed before the freeze)
 tokens:
   lt4.native.beirut:   {expected: 41.9, kind: abs, tol: 0.05}
@@ -118,6 +123,47 @@ auroc:
   imagefree.geometry.libya: {expected: 0.272, kind: abs, tol: 0.005}
   imagefree.geometry.mean5: {expected: 0.430, kind: abs, tol: 0.005}
 
+# p04 (22 Nov 2026, main @ c322232): DINOv2 ViT-B/14 and DINOv3 ViT-L/16 (web and satellite), outline, native.
+# ViT-L in fp32 (PR #27). r01 step 5d rebuilds these.
+  dinov2_vitb14.native.outline.beirut: {expected: 0.437, kind: abs, tol: 0.005}
+  dinov2_vitb14.native.outline.congo: {expected: 0.889, kind: abs, tol: 0.005}
+  dinov2_vitb14.native.outline.hawaii: {expected: 0.591, kind: abs, tol: 0.005}
+  dinov2_vitb14.native.outline.la_palma: {expected: 0.545, kind: abs, tol: 0.005}
+  dinov2_vitb14.native.outline.libya: {expected: 0.386, kind: abs, tol: 0.005}
+  dinov2_vitb14.native.outline.mean5: {expected: 0.570, kind: abs, tol: 0.005}
+  dinov3_vitl16.native.outline.beirut: {expected: 0.709, kind: abs, tol: 0.005}
+  dinov3_vitl16.native.outline.congo: {expected: 0.878, kind: abs, tol: 0.005}
+  dinov3_vitl16.native.outline.hawaii: {expected: 0.586, kind: abs, tol: 0.005}
+  dinov3_vitl16.native.outline.la_palma: {expected: 0.634, kind: abs, tol: 0.005}
+  dinov3_vitl16.native.outline.libya: {expected: 0.437, kind: abs, tol: 0.005}
+  dinov3_vitl16.native.outline.mean5: {expected: 0.649, kind: abs, tol: 0.005}
+  dinov3_vitl16_sat.native.outline.beirut: {expected: 0.742, kind: abs, tol: 0.005}
+  dinov3_vitl16_sat.native.outline.congo: {expected: 0.827, kind: abs, tol: 0.005}
+  dinov3_vitl16_sat.native.outline.hawaii: {expected: 0.755, kind: abs, tol: 0.005}
+  dinov3_vitl16_sat.native.outline.la_palma: {expected: 0.856, kind: abs, tol: 0.005}
+  dinov3_vitl16_sat.native.outline.libya: {expected: 0.646, kind: abs, tol: 0.005}
+  dinov3_vitl16_sat.native.outline.mean5: {expected: 0.765, kind: abs, tol: 0.005}
+# g01 (22 Nov 2026, main @ c322232): C2 image-matched pooling, DINOv3 ViT-B/16 native. r01 step 5e rebuilds these.
+  native.matched.beirut: {expected: 0.636, kind: abs, tol: 0.005}
+  native.matched.congo: {expected: 0.855, kind: abs, tol: 0.005}
+  native.matched.hawaii: {expected: 0.493, kind: abs, tol: 0.005}
+  native.matched.la_palma: {expected: 0.643, kind: abs, tol: 0.005}
+  native.matched.libya: {expected: 0.509, kind: abs, tol: 0.005}
+  native.matched.mean5: {expected: 0.627, kind: abs, tol: 0.005}
+
+# b02 (22 Nov 2026, main @ 4582400): texture + random forest, CPU, deterministic. r01 step 5f rebuilds these.
+  texture_rf.footprint.beirut: {expected: 0.474, kind: abs, tol: 0.005}
+  texture_rf.footprint.congo: {expected: 0.545, kind: abs, tol: 0.005}
+  texture_rf.footprint.hawaii: {expected: 0.696, kind: abs, tol: 0.005}
+  texture_rf.footprint.la_palma: {expected: 0.765, kind: abs, tol: 0.005}
+  texture_rf.footprint.libya: {expected: 0.510, kind: abs, tol: 0.005}
+  texture_rf.footprint.mean5: {expected: 0.598, kind: abs, tol: 0.005}
+  texture_rf.footprint_ctx32m.beirut: {expected: 0.459, kind: abs, tol: 0.005}
+  texture_rf.footprint_ctx32m.congo: {expected: 0.633, kind: abs, tol: 0.005}
+  texture_rf.footprint_ctx32m.hawaii: {expected: 0.692, kind: abs, tol: 0.005}
+  texture_rf.footprint_ctx32m.la_palma: {expected: 0.687, kind: abs, tol: 0.005}
+  texture_rf.footprint_ctx32m.libya: {expected: 0.449, kind: abs, tol: 0.005}
+  texture_rf.footprint_ctx32m.mean5: {expected: 0.584, kind: abs, tol: 0.005}
 # Table IV: event-level comparisons (5 events, 95% t-interval, 4 df)
 comparisons:
   "0.3m vs native (outline)":      {estimate: -0.030, lower: -0.122, upper: 0.062, verdict: "Inconclusive"}
@@ -131,6 +177,20 @@ comparisons:
   "DINOv3 vs image-free":                {estimate: 0.190,  lower: -0.102, upper: 0.482, verdict: "Inconclusive"}
   "ImageNet vs image-free":              {estimate: 0.234,  lower: -0.094, upper: 0.561, verdict: "Inconclusive"}
   "dilated3m vs outline (ImageNet)":     {estimate: 0.009,  lower: -0.018, upper: 0.037, verdict: "Inconclusive"}
+  # p04 (exploratory, development events)
+  "DINOv3-L satellite vs web":   {estimate: 0.117, lower: -0.033, upper: 0.266, verdict: "Inconclusive"}
+  "DINOv3 ViT-L vs ViT-B (web)": {estimate: 0.029, lower: -0.040, upper: 0.097, verdict: "Inconclusive"}
+  "DINOv3 vs DINOv2 (ViT-B)":    {estimate: 0.051, lower: -0.097, upper: 0.198, verdict: "Inconclusive"}
+  # g01 (exploratory; Gate 1 itself is checked from these gains plus the random-shift null in r01 step 5e)
+  "C2 matched vs outline":       {estimate: 0.007, lower: -0.018, upper: 0.033, verdict: "Inconclusive"}
+  "C2 matched vs dilated 3 m":   {estimate: 0.010, lower: -0.021, upper: 0.041, verdict: "Inconclusive"}
+  "C2 matched vs ring 10 m":     {estimate: 0.009, lower: -0.067, upper: 0.086, verdict: "Inconclusive"}
+  # b02 (exploratory, development events)
+  "texture vs image-free":            {estimate: 0.168, lower: -0.081, upper: 0.417, verdict: "Inconclusive"}
+  "texture context vs footprint":     {estimate: -0.014, lower: -0.095, upper: 0.067, verdict: "Inconclusive"}
+  "DINOv3 ViT-B probe vs texture":    {estimate: 0.022, lower: -0.243, upper: 0.288, verdict: "Inconclusive"}
+  "ImageNet probe vs texture":        {estimate: 0.066, lower: -0.063, upper: 0.194, verdict: "Inconclusive"}
+  "satellite ViT-L probe vs texture": {estimate: 0.167, lower: 0.040, upper: 0.294, verdict: "Supported: a worthwhile gain"}
 comparison_tol: {estimate: 0.005, bounds: 0.01}
 
 # Section VI-A: footprint-to-SAR offsets per tile (c07 / r01 step 5b; CPU, deterministic: seed 0).
