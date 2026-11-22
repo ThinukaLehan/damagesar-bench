@@ -1,0 +1,20 @@
+# IEEE template files (download from IEEE; not redistributed here)
+ieeeaccess.cls
+IEEEtran.cls
+IEEEtran.bst
+spotcolor.sty
+t1*.pfb
+t1*.tfm
+t1*.map
+t1*.fd
+logo.png
+notaglinelogo.png
+bullet.png
+# LaTeX build output
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.spl
+main.pdf
