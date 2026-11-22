@@ -1,6 +1,8 @@
 # Pre-registration: DamageSAR-Bench confirmatory analysis
 
-- **Status:** **FROZEN on 22 Nov 2026** (moved forward from 10 Jan 2027 at the supervisor's request, 22 Nov 2026). Frozen by the git tag `prereg-freeze` and a Zenodo deposit of this file; the date, tag and DOI are in `docs/FREEZE.md`. The locked run (`notebooks/locked/k01_locked_confirmatory_test.ipynb`) refuses to start without them.
+**Author:** Thinuka Lehan Hewa Maddumage (ORCID 0009-0000-4379-1664). **Supervisor:** Dr. Achala Aponsu. **Code:** https://github.com/ThinukaLehan/damagesar-bench
+
+- **Status:** **FROZEN on 22 Nov 2026** (originally planned for 10 Jan 2027; brought forward with the supervisor's agreement on 22 Nov 2026). Frozen by the git tag `prereg-freeze` and a Zenodo deposit of this file; the date, tag and DOI are in `docs/FREEZE.md`. The locked run (`notebooks/locked/k01_locked_confirmatory_test.ipynb`) refuses to start without them.
 - **Design version:** v11.1 (FYP Master, 9 Nov 2026).
 - Every item once marked TBD was fixed on development events before the freeze (see the decision record at the end). Anything changed after the freeze is reported as a deviation.
 
@@ -40,22 +42,23 @@ Classification of **given building footprints** as damaged-or-destroyed vs intac
   1. *Within each confirmatory event:* the paired AUROC difference (RQ1 DINOv3 model − ImageNet ViT-B, the same buildings) with a 95% tile-cluster bootstrap interval (2,000 replicates, seed 0). An event counts for a model when the whole interval lies on its side of zero. Reported: the number of the 5 events that count for each model. The paired DeLong difference and p-value are a side check only (DeLong treats buildings as independent).
   2. *Across events:* the exact **one-sided** sign-flip p-value in the pre-registered direction (the DINOv3 model better than ImageNet); 1/32 if it is ahead in all 5 events.
 - **Rehearsal:** the locked analysis (`src/damagesar_bench/locked.py`, called by k01) was run before the freeze on the development events standing in for the confirmatory ones (`notebooks/checks/k00_locked_rehearsal.ipynb`); **passed on 22 Nov 2026** (all six checks: only RQ1 labelled confirmatory; level 0.975; per-event AUROCs equal p03/p04 within 0.005; RQ1 estimate +0.102; supporting evidence and C3 ran on 5 events), recorded in `EXPERIMENT_LOG.md`.
-- Within one event: tile-cluster bootstrap (paired DeLong as a side check).
+- Per-event AUROC intervals: tile-cluster bootstrap (paired DeLong as a side check).
 - **Implementation** (`src/damagesar_bench/stats/`, tested against hand-worked values, printed t tables, a brute-force DeLong, scikit-learn and statsmodels):
   - Verdicts compare values after rounding to 10 decimals, so floating-point noise cannot change a row (e.g. 0.1 − 0.08 counts as exactly +0.02). Equality cases: estimate = +0.02 → row 1; lower = 0 → not "> 0"; upper = +0.02 → not "< +0.02" (inconclusive).
   - AUROC with mid-ranks (ties count ½); average precision as in scikit-learn; DeLong by the Sun & Xu (2014) fast algorithm.
   - Tile-cluster bootstrap: 2,000 replicates, percentile interval, tiles resampled with replacement; replicates with one class are skipped and counted; more than 5% skipped → flagged unreliable.
   - Sign-flip: exact enumeration of all 2ⁿ sign patterns, statistic |sum of gains|.
-  - Hartung–Knapp: DerSimonian–Laird τ², t quantile with k − 1 df, no truncation of the HK scale factor.
-- **Power (pre-registered method):** minimum detectable mean gain for a two-sided one-sample t-test at 5% with 80% power, solved exactly with the noncentral t distribution: **1.43 SD with 6 events, 1.68 SD with 5** (normal approximation 1.14 SD; quick t approximation 1.42 SD). Pilot-SD rule (SD of the per-event gains of the primary comparison on the development events): SD ≤ 0.020 → the decision-table verdict leads; SD > 0.020 → the estimate and its interval lead, with the verdict reported alongside (the secondary estimate it once pointed to is dropped, §2). **Applied at the freeze:** for RQ1 (satellite ViT-L − ImageNet ViT-B, outline, native) the development-event gains are +0.277 / +0.046 / +0.039 / +0.101 / +0.046, SD ≈ 0.10, so the RQ1 estimate and its 97.5% interval are reported first. With 5 events and SD ≈ 0.10, the minimum detectable mean gain is about 1.68 × 0.10 ≈ 0.17 AUROC: RQ1 is powered only for a large effect, and an inconclusive verdict is a likely and reportable outcome.
+  - Hartung–Knapp (implemented and tested; not used, §2): DerSimonian–Laird τ², t quantile with k − 1 df, no truncation of the HK scale factor.
+- **Power (pre-registered method):** minimum detectable mean gain for a two-sided one-sample t-test at 5% with 80% power, solved exactly with the noncentral t distribution: **1.43 SD with 6 events, 1.68 SD with 5** (normal approximation 1.14 SD; quick t approximation 1.42 SD). Pilot-SD rule (SD of the per-event gains of the primary comparison on the development events): SD ≤ 0.020 → the decision-table verdict leads; SD > 0.020 → the estimate and its interval lead, with the verdict reported alongside (the secondary estimate it once pointed to is dropped, §2). **Applied at the freeze:** for RQ1 (satellite ViT-L − ImageNet ViT-B, outline, native) the development-event gains are +0.277 / +0.046 / +0.039 / +0.101 / +0.046, SD ≈ 0.10, so the RQ1 estimate and its 97.5% interval are reported first. With 5 events and SD ≈ 0.10, the minimum detectable mean gain is about 1.68 × 0.10 ≈ 0.17 AUROC at the 5% level, and 2.05 × 0.10 ≈ 0.21 AUROC at the 2.5% level that RQ1 uses (97.5% interval; same exact method): RQ1 is powered only for a large effect, and an inconclusive verdict is a likely and reportable outcome.
 
 ## 6. Gates
 - **Gate 1 (C2; run 22 Nov 2026 on the development events, g01: NOT PASSED, so RQ2 is not run):** mean ΔAUROC ≥ +0.02 over the 5 development events, better than outline pooling in ≥ 4 of 5, and better than a random-shift null. Shift rule: **fixed 22 Nov 2026, before any C2 AUROC was computed** (see *C2 rule* below). **Null rule (fixed 22 Nov 2026):** run the random-shift control R times (same shift-size distribution, different random directions); projected passes if its mean gain is above the 95th percentile of the R random-shift mean gains (R = 1 reduces to "strictly larger"). A gain of exactly 0 does not count as "better". Implemented in `stats/gates.py`.
 - **C3 (run 22 Nov 2026 on the development events, c301: NOT PASSED):** relative prevalence error ≤ 50% on ≥ 4 of 5 development events and better than the training-average baseline. **Fixed 22 Nov 2026:** "better" = a lower relative error than the training-average baseline on at least 4 of the same 5 development events. Abstain thresholds: **fixed 22 Nov 2026, before any C3 result** (see *C3 rule* below).
-- **Gate 2 (decided 22 Nov 2026):** the locked run is executed once, with RQ3 (C3) reported on the confirmatory events. No further threshold.
+- **Gate 2 (decided 22 Nov 2026):** the locked run is executed once, with RQ3 (C3) reported on the confirmatory events for the RQ1 DINOv3 model (outline, native), as exploratory. No further threshold.
 
 ## 7. Disclosure: what was seen before the freeze
-The 31 Oct 2026 audit (tag `audit-2026-10-31`) looked at confirmatory events in four ways: class and instance counts; footprint-to-SAR offsets; raw-signal building AUROC; tile building-count AUROC. No encoder features were computed and no setting was chosen from them.
+The 31 Oct 2026 audit (a Colab notebook run before the repository existed; logged in `EXPERIMENT_LOG.md`) looked at confirmatory events in four ways: class and instance counts; footprint-to-SAR offsets; raw-signal building AUROC; tile building-count AUROC. No encoder features were computed and no setting was chosen from them.
+
 - **Untouched:** all encoder, probe, C2-gain, C3 and neighbourhood-control results.
 - **Partly known:** the image-free building-count control.
 - **Shaped a hypothesis:** the 2–27 m offsets motivated C2; C2's settings and gate use development events only.
@@ -91,7 +94,8 @@ _None yet._ Any change after the freeze is listed here with its date and reason.
 - **Baseline:** the training-average prevalence (source share of damaged buildings).
 - **Gate (development events):** relative error ≤ 50% on ≥ 4 of 5 events **and** lower than the baseline's on
   ≥ 4 of 5; abstentions count as misses for both. Gated on DINOv3 ViT-B/16 outline (native); ImageNet reported.
-- **Code / notebook:** `src/damagesar_bench/recal/prevalence.py`, `notebooks/pipeline/c301_c3_recalibration.ipynb`.
+- **Code:** `src/damagesar_bench/recal/prevalence.py`.
+- **Notebook:** `notebooks/pipeline/c301_c3_recalibration.ipynb`.
 
 ## Decision record (22 Nov 2026)
 
