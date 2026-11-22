@@ -4,7 +4,7 @@
 # units     = instance (BRIGHT instance JSON) | fallback (no instance labels; see Ukraine rule) | none
 # Changing a role after the plan freeze is a deviation and must be reported.
 
-freeze_date: "2027-01-10"   # confirmatory labels are refused before this date
+freeze_date: "2026-11-22"   # plan frozen 22 Nov 2026 (docs/FREEZE.md); confirmatory labels were refused before this date
 
 events:
   haiti:     {name: "Haiti earthquake",        hazard: earthquake, role: confirmatory, units: instance}

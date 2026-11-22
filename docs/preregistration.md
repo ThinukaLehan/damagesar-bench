@@ -1,6 +1,6 @@
 # Pre-registration: DamageSAR-Bench confirmatory analysis
 
-- **Status:** DRAFT for the freeze on **25 Nov 2026** (moved forward from 10 Jan 2027 at the supervisor's request, 22 Nov 2026). Frozen by the git tag `prereg-freeze` and a Zenodo deposit of this file; the date, tag and DOI are in `docs/FREEZE.md`. The locked run (`notebooks/locked/k01_locked_confirmatory_test.ipynb`) refuses to start without them.
+- **Status:** **FROZEN on 22 Nov 2026** (moved forward from 10 Jan 2027 at the supervisor's request, 22 Nov 2026). Frozen by the git tag `prereg-freeze` and a Zenodo deposit of this file; the date, tag and DOI are in `docs/FREEZE.md`. The locked run (`notebooks/locked/k01_locked_confirmatory_test.ipynb`) refuses to start without them.
 - **Design version:** v11.1 (FYP Master, 9 Nov 2026).
 - Every item once marked TBD was fixed on development events before the freeze (see the decision record at the end). Anything changed after the freeze is reported as a deviation.
 
@@ -43,11 +43,11 @@ Classification of **given building footprints** as damaged-or-destroyed vs intac
   - Tile-cluster bootstrap: 2,000 replicates, percentile interval, tiles resampled with replacement; replicates with one class are skipped and counted; more than 5% skipped → flagged unreliable.
   - Sign-flip: exact enumeration of all 2ⁿ sign patterns, statistic |sum of gains|.
   - Hartung–Knapp: DerSimonian–Laird τ², t quantile with k − 1 df, no truncation of the HK scale factor.
-- **Power (pre-registered method):** minimum detectable mean gain for a two-sided one-sample t-test at 5% with 80% power, solved exactly with the noncentral t distribution: **1.43 SD with 6 events, 1.68 SD with 5** (normal approximation 1.14 SD; quick t approximation 1.42 SD). Pilot-SD rule: SD ≤ 0.020 proceed; 0.020 < SD ≤ 0.035 lead with the estimate; SD > 0.035 lead with the secondary estimate.
+- **Power (pre-registered method):** minimum detectable mean gain for a two-sided one-sample t-test at 5% with 80% power, solved exactly with the noncentral t distribution: **1.43 SD with 6 events, 1.68 SD with 5** (normal approximation 1.14 SD; quick t approximation 1.42 SD). Pilot-SD rule (SD of the per-event gains of the primary comparison on the development events): SD ≤ 0.020 → the decision-table verdict leads; SD > 0.020 → the estimate and its interval lead, with the verdict reported alongside (the secondary estimate it once pointed to is dropped, §2). **Applied at the freeze:** for RQ1 (satellite ViT-L − ImageNet ViT-B, outline, native) the development-event gains are +0.277 / +0.046 / +0.039 / +0.101 / +0.046, SD ≈ 0.10, so the RQ1 estimate and its 97.5% interval are reported first. With 5 events and SD ≈ 0.10, the minimum detectable mean gain is about 1.68 × 0.10 ≈ 0.17 AUROC: RQ1 is powered only for a large effect, and an inconclusive verdict is a likely and reportable outcome.
 
 ## 6. Gates
 - **Gate 1 (C2; run 22 Nov 2026 on the development events, g01: NOT PASSED, so RQ2 is not run):** mean ΔAUROC ≥ +0.02 over the 5 development events, better than outline pooling in ≥ 4 of 5, and better than a random-shift null. Shift rule: **fixed 22 Nov 2026, before any C2 AUROC was computed** (see *C2 rule* below). **Null rule (fixed 22 Nov 2026):** run the random-shift control R times (same shift-size distribution, different random directions); projected passes if its mean gain is above the 95th percentile of the R random-shift mean gains (R = 1 reduces to "strictly larger"). A gain of exactly 0 does not count as "better". Implemented in `stats/gates.py`.
-- **C3 (early Jan):** relative prevalence error ≤ 50% on ≥ 4 of 5 development events and better than the training-average baseline. **Fixed 22 Nov 2026:** "better" = a lower relative error than the training-average baseline on at least 4 of the same 5 development events. Abstain thresholds: **fixed 22 Nov 2026, before any C3 result** (see *C3 rule* below).
+- **C3 (run 22 Nov 2026 on the development events, c301: NOT PASSED):** relative prevalence error ≤ 50% on ≥ 4 of 5 development events and better than the training-average baseline. **Fixed 22 Nov 2026:** "better" = a lower relative error than the training-average baseline on at least 4 of the same 5 development events. Abstain thresholds: **fixed 22 Nov 2026, before any C3 result** (see *C3 rule* below).
 - **Gate 2 (decided 22 Nov 2026):** the locked run is executed once, with RQ3 (C3) reported on the confirmatory events. No further threshold.
 
 ## 7. Disclosure: what was seen before the freeze
@@ -113,4 +113,5 @@ was known when the plan was frozen.
 - Gate 1 (g01, 22 Nov): **not passed**. C2 gains −0.010 / +0.006 / −0.010 / +0.040 / +0.011 (mean +0.007; better on 3 of 5); random-shift null 95th percentile +0.016. RQ2 is not run.
 - More encoders (p04, 22 Nov): outline AUROC means DINOv2 ViT-B/14 0.570, DINOv3 ViT-L web 0.649, **DINOv3 ViT-L satellite 0.765**; satellite − web +0.117 [−0.033, +0.266], better on 4 of 5. At the probe threshold every encoder's predicted damaged share is far from the true share.
 - References: ViT-B fine-tuned on 32 m crops (b01) mean 0.651; texture + random forest (b02) mean 0.598; satellite ViT-L probe − texture +0.167 [+0.040, +0.294], better on 5 of 5 (exploratory).
-- Reproduction (r01, 22 Nov): 172 of 172 checks reproduced from raw data.
+- Confound controls (p05, 22 Nov): DINOv3 ViT-B fp32 − fp16 +0.004 [−0.000, +0.009]; satellite − web ViT-L with the same normalization +0.119 [−0.030, +0.268], 4 of 5.
+- Reproduction (r01, 22 Nov): 172 of 172 checks reproduced from raw data. The later runs (p04, g01, b02, p05) were added to r01, which is rerun on the frozen commit.
