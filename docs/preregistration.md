@@ -47,7 +47,6 @@ Classification of **given building footprints** as damaged-or-destroyed vs intac
 
 ## 6. Gates
 - **Gate 1 (18 Dec 2026, C2):** mean ΔAUROC ≥ +0.02 over the 5 development events, better than outline pooling in ≥ 4 of 5, and better than a random-shift null. Shift rule: **fixed 22 Nov 2026, before any C2 AUROC was computed** (see *C2 rule* below). **Proposed null rule (to agree):** run the random-shift control R times (same shift-size distribution, different random directions); projected passes if its mean gain is above the 95th percentile of the R random-shift mean gains (R = 1 reduces to "strictly larger"). A gain of exactly 0 does not count as "better". Implemented in `stats/gates.py`.
-
 - **C3 (early Jan):** relative prevalence error ≤ 50% on ≥ 4 of 5 development events and better than the training-average baseline. **Proposed (to agree):** "better" = a lower relative error than the training-average baseline on at least 4 of the same 5 development events. Abstain thresholds: **fixed 22 Nov 2026, before any C3 result** (see *C3 rule* below).
 - **Gate 2:** definition TBD with supervisor (proposed: locked run executed once + new-event mode tested, ~25 Jan 2027).
 
