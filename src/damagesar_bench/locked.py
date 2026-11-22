@@ -48,8 +48,13 @@ def locked_comparisons(rq1_encoder: str, run_rq2: bool) -> list[ComparisonSpec]:
 
 def run_locked_analysis(feature_files: list[str | Path], events: EventsConfig, out_dir: str | Path, *,
                         rq1_encoder: str, run_rq2: bool, level: float, n_boot: int = 2000, seed: int = 0,
-                        today: date | None = None) -> dict:
-    """Run the locked comparisons, the supporting evidence and RQ3; write everything under ``out_dir``."""
+                        today: date | None = None,
+                        c3_source_roles: tuple[str, ...] = ("development", "secondary")) -> dict:
+    """Run the locked comparisons, the supporting evidence and RQ3; write everything under ``out_dir``.
+
+    ``c3_source_roles``: the roles whose held-out scores calibrate C3 (frozen rule: development + secondary).
+    Only the k00 rehearsal changes it, because there the development events play the confirmatory role.
+    """
     out_dir = Path(out_dir)
     out = run_benchmark(feature_files, locked_comparisons(rq1_encoder, run_rq2), events, out_dir / "bench_run",
                         n_boot=n_boot, seed=seed, level=level, event_set="confirmatory", only_compared=True,
@@ -62,7 +67,7 @@ def run_locked_analysis(feature_files: list[str | Path], events: EventsConfig, o
     per_event.to_csv(out_dir / "rq1_per_event.csv", index=False)
     sup = summarise(per_event)
     (out_dir / "rq1_supporting.json").write_text(json.dumps(asdict(sup), indent=1), encoding="utf-8")
-    c3 = estimate_all(scores, d, "outline")
+    c3 = estimate_all(scores, d, "outline", source_roles=c3_source_roles)
     c3 = c3[c3["event"].isin(conf)].reset_index(drop=True)
     c3.to_csv(out_dir / "c3_confirmatory.csv", index=False)
     return {"bench_run": out, "comparisons": comps, "per_event": per_event, "supporting": sup, "c3": c3}

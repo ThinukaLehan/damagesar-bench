@@ -119,6 +119,8 @@ def estimate_event(target_scores: np.ndarray, source_scores: np.ndarray, source_
     s_tgt = np.asarray(target_scores, dtype=float)
     if s_tgt.size == 0:
         raise RecalError(f"{event}: no target scores")
+    if s_src.size == 0:
+        raise RecalError(f"{event}: no labelled source scores (check the source roles)")
     pi_s = float(y_src.mean())
     a, b = platt_fit(s_src, y_src)
     em, _ = em_prior(platt_apply(s_tgt, a, b), pi_s)
