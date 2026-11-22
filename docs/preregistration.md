@@ -4,7 +4,7 @@
 
 - **Status:** **FROZEN on 22 Nov 2026** (originally planned for 10 Jan 2027; brought forward with the supervisor's agreement on 22 Nov 2026). Frozen by the git tag `prereg-freeze` and a Zenodo deposit of this file; the date, tag and DOI are in `docs/FREEZE.md`. The locked run (`notebooks/locked/k01_locked_confirmatory_test.ipynb`) refuses to start without them.
 - **Design version:** v11.1 (FYP Master, 9 Nov 2026).
-- Every item once marked TBD was fixed on development events before the freeze (see the decision record at the end). Anything changed after the freeze is reported as a deviation.
+- Every item once marked TBD was fixed on development events before the freeze (see the decision record below). Anything changed after the freeze is reported as a deviation.
 
 ## 1. Scope
 Classification of **given building footprints** as damaged-or-destroyed vs intact, from post-event SAR only, on BRIGHT (14 events), holding each disaster out.
@@ -99,11 +99,10 @@ _None yet._ Any change after the freeze is listed here with its date and reason.
 
 ## Decision record (22 Nov 2026)
 
-The supervisor (Dr. Achala Aponsu) asked on 22 Nov 2026 (phone) to proceed now rather than wait for January, and to
-receive written recommendations on the open questions. The decisions above follow those recommendations
-(`DamageSAR-Bench: Decisions and recommendations for Dr. Aponsu`, 22 Nov 2026). **He agreed to all ten on
-22 Nov 2026**, and asked that the venue be an IEEE Q1 journal (decision 7: IEEE JSTARS first). The form and time
-of his agreement are recorded in `docs/FREEZE.md` before the freeze tag is set.
+On 22 Nov 2026 the open questions were settled with the supervisor (Dr. Achala Aponsu), following written
+recommendations (`DamageSAR-Bench: Decisions and recommendations for Dr. Aponsu`, 22 Nov 2026). **He agreed to all
+ten decisions on 22 Nov 2026** and asked that the venue be an IEEE Q1 journal (decision 7: IEEE JSTARS first). The
+form and time of his agreement are recorded in `docs/FREEZE.md` before the freeze tag is set.
 
 **Decision 10 (agreed 22 Nov 2026):** RQ1 uses the satellite-pretrained DINOv3 ViT-L/16
 (`rq1_encoder: dinov3_vitl16_sat` in `docs/FREEZE.md`), which had the highest mean AUROC on the development events
