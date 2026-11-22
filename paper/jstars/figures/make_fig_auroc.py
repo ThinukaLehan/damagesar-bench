@@ -26,7 +26,7 @@ SETTINGS = [  # label, AUROC, 95% tile-cluster bootstrap (lower, upper), colour,
      [(0.584, 0.761), (0.129, 0.637), (0.279, 0.526), (0.498, 0.588), (0.168, 0.384)], "#555555", "^"),
 ]
 
-plt.rcParams.update({"font.family": "serif", "font.serif": ["TeX Gyre Termes", "Times New Roman", "DejaVu Serif"], "mathtext.fontset": "stix", "font.size": 9, "axes.linewidth": 0.6})
+plt.rcParams.update({"pdf.fonttype": 42, "ps.fonttype": 42, "font.family": "serif", "font.serif": ["Liberation Serif", "TeX Gyre Termes", "Times New Roman", "DejaVu Serif"], "mathtext.fontset": "stix", "font.size": 9, "axes.linewidth": 0.6})
 fig, ax = plt.subplots(figsize=(3.45, 2.55))
 ax.axhline(0.5, color="#999999", lw=0.8, ls="--", zorder=0)
 offsets = [-0.28, -0.14, 0.0, 0.14, 0.28]

@@ -38,8 +38,8 @@ FRONT = r"""\documentclass{ieeeaccess}
 \tfootnote{This research received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors.}
 
 \markboth
-{T. Lehan and A. Aponsu: DamageSAR-Bench: Building-Level Evaluation of Frozen Foundation Models}
-{T. Lehan and A. Aponsu: DamageSAR-Bench: Building-Level Evaluation of Frozen Foundation Models}
+{T. Lehan and A. Aponsu: DamageSAR-Bench: Building-Level Evaluation of Frozen Vision Foundation Models}
+{T. Lehan and A. Aponsu: DamageSAR-Bench: Building-Level Evaluation of Frozen Vision Foundation Models}
 
 \corresp{Corresponding author: Thinuka Lehan (e-mail: thinukalehanfyp@gmail.com).}
 
