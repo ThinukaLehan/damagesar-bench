@@ -259,3 +259,14 @@ def test_vitl_encoders_run_in_full_precision():
 
     assert DINOv3ViTB16.half_precision is True
     assert DINOv3ViTL16.half_precision is False and DINOv3ViTL16Sat.half_precision is False
+
+
+def test_confound_control_variants():
+    from damagesar_bench.encoders.hf import (DINOv3ViTB16, DINOv3ViTB16FP32, DINOv3ViTL16, DINOv3ViTL16Sat,
+                                             DINOv3ViTL16SatNorm)
+    from damagesar_bench.encoders.base import _REGISTRY as REGISTRY
+    assert REGISTRY["dinov3_vitb16_fp32"] is DINOv3ViTB16FP32
+    assert DINOv3ViTB16FP32.model_id == DINOv3ViTB16.model_id and DINOv3ViTB16FP32.half_precision is False
+    assert DINOv3ViTB16.half_precision is True
+    assert DINOv3ViTL16SatNorm.model_id == DINOv3ViTL16.model_id
+    assert DINOv3ViTL16SatNorm.norm_stats == DINOv3ViTL16Sat.norm_stats and DINOv3ViTL16.norm_stats is None
