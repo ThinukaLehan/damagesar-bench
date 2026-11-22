@@ -1,4 +1,5 @@
-"""Fig. 2: building-level AUROC per held-out development event, frozen encoders and controls.
+"""Fig. 2: building-level AUROC per held-out development event, frozen encoders and controls, with 95% tile-cluster
+bootstrap intervals.
 
 Values are the recorded p02b (20 Nov 2026) and p03 (22 Nov 2026) results, identical to
 paper/expected_values.yaml (checked by notebooks/reproduce/r01_reproduce_paper.ipynb).
@@ -12,25 +13,31 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
 EVENTS = ["Beirut\n(explosion)", "Congo\n(volcano)", "Hawaii\n(wildfire)", "La Palma\n(volcano)", "Libya\n(flood)"]
-SETTINGS = [  # label, values, colour, marker
-    ("DINOv3, outline", [0.646, 0.849, 0.504, 0.604, 0.498], "#1f4e9c", "o"),
-    ("DINOv3, 10 m ring (surroundings)", [0.654, 0.853, 0.549, 0.533, 0.503], "#7aa6e0", "s"),
-    ("ImageNet ViT-B, outline", [0.465, 0.781, 0.716, 0.755, 0.600], "#c2571a", "D"),
-    ("Image-free control", [0.661, 0.269, 0.405, 0.544, 0.272], "#555555", "^"),
+SETTINGS = [  # label, AUROC, 95% tile-cluster bootstrap (lower, upper), colour, marker
+    ("DINOv3, outline", [0.646, 0.849, 0.504, 0.604, 0.498],
+     [(0.381, 0.873), (0.792, 0.897), (0.403, 0.607), (0.548, 0.658), (0.387, 0.605)], "#1f4e9c", "o"),
+    ("DINOv3, 10 m ring (surroundings)", [0.654, 0.853, 0.549, 0.533, 0.503],
+     [(0.383, 0.892), (0.791, 0.901), (0.434, 0.654), (0.472, 0.597), (0.382, 0.619)], "#7aa6e0", "s"),
+    ("ImageNet ViT-B, outline", [0.465, 0.781, 0.716, 0.755, 0.600],
+     [(0.262, 0.684), (0.650, 0.881), (0.637, 0.770), (0.704, 0.804), (0.498, 0.703)], "#c2571a", "D"),
+    ("Image-free control", [0.661, 0.269, 0.405, 0.544, 0.272],
+     [(0.584, 0.761), (0.129, 0.637), (0.279, 0.526), (0.498, 0.588), (0.168, 0.384)], "#555555", "^"),
 ]
 
 plt.rcParams.update({"font.family": "serif", "font.size": 8, "axes.linewidth": 0.6})
 fig, ax = plt.subplots(figsize=(3.45, 2.55))
 ax.axhline(0.5, color="#999999", lw=0.8, ls="--", zorder=0)
-ax.text(4.45, 0.505, "chance", ha="right", va="bottom", fontsize=7, color="#666666")
+ax.text(-0.45, 0.505, "chance", ha="left", va="bottom", fontsize=7, color="#666666")
 offsets = [-0.24, -0.08, 0.08, 0.24]
-for (label, vals, colour, marker), dx in zip(SETTINGS, offsets):
-    ax.scatter([i + dx for i in range(len(EVENTS))], vals, s=22, color=colour, marker=marker,
-               edgecolor="white", linewidth=0.5, label=label, zorder=3)
+for (label, vals, ci, colour, marker), dx in zip(SETTINGS, offsets):
+    xs = [i + dx for i in range(len(EVENTS))]
+    err = [[v - lo for v, (lo, _) in zip(vals, ci)], [hi - v for v, (_, hi) in zip(vals, ci)]]
+    ax.errorbar(xs, vals, yerr=err, fmt="none", ecolor=colour, elinewidth=0.7, capsize=1.5, alpha=0.8, zorder=2)
+    ax.scatter(xs, vals, s=20, color=colour, marker=marker, edgecolor="white", linewidth=0.5, label=label, zorder=3)
 ax.set_xticks(range(len(EVENTS)))
 ax.set_xticklabels(EVENTS, fontsize=7)
 ax.set_ylabel("Building-level AUROC")
-ax.set_ylim(0.2, 0.92)
+ax.set_ylim(0.1, 0.95)
 ax.set_xlim(-0.5, 4.5)
 for s in ("top", "right"):
     ax.spines[s].set_visible(False)
