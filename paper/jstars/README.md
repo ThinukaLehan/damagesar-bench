@@ -25,5 +25,9 @@ IEEE Access was the earlier target; its template is no longer used.
 
 ## Before submission
 
+- Fill every **[ ]** placeholder from the locked run (k01): Section VI-I, Table XIV, the abstract and the conclusion.
+- Replace the three `[DOI to be added]` entries in `refs.bib` (plan, code, data) with the Zenodo DOIs.
+- References: peer-reviewed versions only (no preprints, 22 Nov 2026); 49 entries, 13 pages, in line with recent JSTARS papers (e.g. Russo et al., 2026: 13 pages).
+
 - Author biographies and photos, ORCID iDs, affiliations and author order (to confirm with the supervisor).
 - Rerun `notebooks/reproduce/r01_reproduce_paper.ipynb` on the final commit: the verdict must read `REPRODUCED`.
