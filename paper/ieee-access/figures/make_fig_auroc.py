@@ -29,7 +29,6 @@ SETTINGS = [  # label, AUROC, 95% tile-cluster bootstrap (lower, upper), colour,
 plt.rcParams.update({"font.family": "serif", "font.serif": ["TeX Gyre Termes", "Times New Roman", "DejaVu Serif"], "mathtext.fontset": "stix", "font.size": 8, "axes.linewidth": 0.6})
 fig, ax = plt.subplots(figsize=(3.45, 2.55))
 ax.axhline(0.5, color="#999999", lw=0.8, ls="--", zorder=0)
-ax.text(-0.45, 0.505, "chance", ha="left", va="bottom", fontsize=7, color="#666666")
 offsets = [-0.28, -0.14, 0.0, 0.14, 0.28]
 for (label, vals, ci, colour, marker), dx in zip(SETTINGS, offsets):
     xs = [i + dx for i in range(len(EVENTS))]
