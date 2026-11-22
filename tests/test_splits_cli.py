@@ -35,9 +35,9 @@ def test_write_splits(tmp_path, events_cfg, before_freeze):
 def test_repo_configs_load():
     events = load_events()
     assert len(events.events) == 14
-    assert len(events.keys_with_role("confirmatory")) == 6
+    assert len(events.keys_with_role("confirmatory")) == 5   # Ukraine moved to secondary, 22 Nov 2026
     assert len(events.keys_with_role("development")) == 5
-    assert len(events.keys_with_role("secondary")) == 3
+    assert len(events.keys_with_role("secondary")) == 4
     assert load_bench().nodata.tile_exclude_frac == 0.95
 
 
