@@ -1,9 +1,14 @@
 # Reproducing the paper
 
-Every number in the draft paper (`paper/`) is listed in **`paper/expected_values.yaml`** with the run that
-produces it and how closely a rerun must match. One notebook rebuilds all of them from the public data:
+Every development-phase number in the paper (`paper/`), except those of the fine-tuned reference (b01, whose GPU
+training is not bit-exact), is listed in **`paper/expected_values.yaml`** with the run that produces it and how
+closely a rerun must match. One notebook rebuilds them from the public data:
 
-**`notebooks/reproduce/r01_reproduce_paper.ipynb`** (Colab, T4 GPU, about 90–100 minutes)
+**`notebooks/reproduce/r01_reproduce_paper.ipynb`** (Colab, T4 GPU, about 4.5–5 hours)
+
+Status (23 Nov 2026): its last complete run (22 Nov 2026) passed all 172 checks it then contained. The ViT-L
+encoders, texture reference, Gate 1 and confound controls were added to it afterwards; a full rerun is still to
+be done, and the paper says so.
 
 1. Start a **fresh** session (Runtime → Disconnect and delete runtime), then Runtime → Change runtime type → T4 GPU.
 2. Colab Secrets: `GH_TOKEN` (read access to this repository while it is private) and `HF_TOKEN`
@@ -40,11 +45,13 @@ Transformers, GPU, git commit, and the Hugging Face commit of the DINOv3 weights
 benchmark's `run_manifest.json` records the same environment plus a SHA-256 of every input file.
 To load a specific weights revision, set `DSB_REVISION_DINOV3_VITB16=<commit>` before creating the encoder.
 
-## What is not checked before 10 Jan 2027
+## The locked-test numbers
 
-Numbers that need confirmatory labels (pixel class shares over all 14 events, class counts and prevalence of the
-confirmatory events, all confirmatory results) are locked until the plan freeze and are not in the file; they
-are added, and checked the same way, after the freeze.
+Numbers that use confirmatory labels are not in `expected_values.yaml` and are not rebuilt by r01. They come from
+the single locked run of `notebooks/locked/k01_locked_confirmatory_test.ipynb` (22 Nov 2026, UTC, at the frozen
+commit `92fba68`; see `EXPERIMENT_LOG.md`). `paper/tools/fill_locked.py` reads that run folder, re-derives the
+RQ1 interval from the per-event gains and the verdict from the frozen decision table, and only then writes the
+values used in the paper (`paper/locked_results/`).
 
 ## Data licences
 
