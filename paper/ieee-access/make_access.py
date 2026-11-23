@@ -41,7 +41,7 @@ FRONT = r"""\documentclass{ieeeaccess}
 {T. Lehan \headeretal: DamageSAR-Bench: Building-Level Evaluation of Frozen Vision Foundation Models}
 {T. Lehan \headeretal: DamageSAR-Bench: Building-Level Evaluation of Frozen Vision Foundation Models}
 
-\corresp{Corresponding author: Thinuka Lehan (e-mail: thinukalehanfyp@gmail.com).}
+\corresp{Corresponding author: Thinuka Lehan (e-mail: thinuka.20221423@iit.ac.lk).}
 
 \begin{abstract}
 %(abstract)s
