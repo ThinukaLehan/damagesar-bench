@@ -17,7 +17,7 @@
 
 \title{DamageSAR-Bench: Building-Level Evaluation of Frozen Vision Foundation Models for SAR Damage Classification on Unseen Disasters}
 
-\author{\uppercase{Thinuka Lehan}\authorrefmark{1}, \uppercase{Achala Aponsu}\authorrefmark{1}, and \uppercase{Maninda Edirisooriya}\authorrefmark{1}}
+\author{\uppercase{Thinuka Lehan}\authorrefmark{1}, \uppercase{Achala Aponso}\authorrefmark{1}, and \uppercase{Maninda Edirisooriya}\authorrefmark{1}}
 \address[1]{Informatics Institute of Technology (IIT), Colombo, Sri Lanka}
 \tfootnote{This research received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors.}
 
@@ -25,7 +25,7 @@
 {T. Lehan \headeretal: DamageSAR-Bench: Building-Level Evaluation of Frozen Vision Foundation Models}
 {T. Lehan \headeretal: DamageSAR-Bench: Building-Level Evaluation of Frozen Vision Foundation Models}
 
-\corresp{Corresponding author: Thinuka Lehan (e-mail: thinukalehanfyp@gmail.com).}
+\corresp{Corresponding author: Thinuka Lehan (e-mail: thinuka.20221423@iit.ac.lk).}
 
 \begin{abstract}
 Building-damage models for synthetic aperture radar (SAR) lose accuracy on unseen disasters, and current evaluations cannot say why: they score pixels or tiles, use optical outlines misaligned with the radar signal, and rarely control for shortcuts. We present DamageSAR-Bench, an open benchmark that classifies damage to given building footprints in single-band SAR at native resolution, holds each disaster out in turn, and withholds the test events' labels until the analysis plan is frozen. Linear probes on frozen encoders are compared with a pixel-free control and a surroundings-only control. On five development events of the BRIGHT dataset, the building-level area under the receiver operating characteristic curve (AUROC) of the five frozen encoders ranges from 0.39 to 0.89. A DINOv3 model pretrained on satellite images has the highest mean, 0.765, above the same model pretrained on web images (0.649), a fine-tuned network (0.651) and a texture-based random forest (0.598); with five events, only the last gap's 95\% interval excludes zero. Much of the signal is context: for a smaller DINOv3 model, a building's surroundings alone score as well as the building. Good ranking does not transfer into a usable damage map: predicted damage shares on a new event are far from the truth. Two remedies fixed in advance, footprint shifting and label-free recalibration, fail their success criteria. In the locked test of the main comparison on five confirmatory events, \textbf{[result]}. One notebook rebuilds every development-phase number from public data.
@@ -601,16 +601,22 @@ This work uses the DINOv3 models and weights released by Meta (DINO Materials, D
 \bibliographystyle{IEEEtran}
 \bibliography{../jstars/refs}
 
-\begin{IEEEbiography}[{\framebox[1in][c]{\rule{0pt}{1.25in}Photo}}]{Thinuka Lehan}
-is an undergraduate student at the Informatics Institute of Technology (IIT), Colombo, Sri Lanka. His research interests include remote sensing for disaster response, synthetic aperture radar, and reproducible evaluation of machine-learning models.
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{photos/lehan.jpg}}]{Thinuka Lehan}
+is currently pursuing the B.Sc.\ (Hons.) degree in software engineering at the Informatics Institute of Technology (IIT), Colombo, Sri Lanka, awarded by the University of Westminster, U.K., which he expects to complete in 2027. He was an intern at the London Stock Exchange Group (LSEG).
+
+His final-year research project, DamageSAR-Bench, is an open, pre-registered benchmark for evaluating building-damage classification from synthetic aperture radar (SAR) imagery on unseen disasters. His research interests include remote sensing for disaster response, SAR image analysis, foundation models for Earth observation, and reproducible evaluation of machine-learning models.
 \end{IEEEbiography}
 
-\begin{IEEEbiography}[{\framebox[1in][c]{\rule{0pt}{1.25in}Photo}}]{Achala Aponsu}
+\begin{IEEEbiography}[{\framebox[1in][c]{\rule{0pt}{1.25in}Photo}}]{Achala Aponso}
 is with the Informatics Institute of Technology (IIT), Colombo, Sri Lanka.
 \end{IEEEbiography}
 
-\begin{IEEEbiography}[{\framebox[1in][c]{\rule{0pt}{1.25in}Photo}}]{Maninda Edirisooriya}
-is with the Informatics Institute of Technology (IIT), Colombo, Sri Lanka.
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{photos/edirisooriya.jpg}}]{Maninda Edirisooriya}
+received the B.Sc.\ Engineering (Hons.) degree in computer science and engineering in 2011 and the MBA degree in management of technology in 2019, both from the University of Moratuwa, Sri Lanka.
+
+He is currently a Senior Lecturer at the IIT School of Computing, Informatics Institute of Technology, Sri Lanka, where he teaches machine vision and applied artificial intelligence and supports undergraduate research projects. Previously, he held academic teaching appointments at the University of Moratuwa, covering machine learning, deep learning, big data analytics, and related disciplines. Before his academic career, he served in several software engineering and technical leadership roles at WSO2 (now Choreo Labs) from 2011 to 2023, most recently as an Associate Technical Lead. His industry contributions include the development of an AI-powered customer support chatbot, deep learning-based sentiment analysis of enterprise support tickets, and large-scale distributed software systems.
+
+His research interests include trustworthy and explainable artificial intelligence, machine learning, deep learning, generative and agentic AI systems, natural language processing, computer vision, and conversational agents. His recent research encompasses policy-controlled conversational AI, explainable machine learning, and graph-based learning approaches. Mr.\ Edirisooriya is an Associate Member of the Institution of Engineers, Sri Lanka (IESL), and a Corporate Life Member of the Radio Society of Sri Lanka (RSSL).
 \end{IEEEbiography}
 
 

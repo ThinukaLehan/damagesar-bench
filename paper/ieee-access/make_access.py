@@ -33,7 +33,7 @@ FRONT = r"""\documentclass{ieeeaccess}
 
 \title{%(title)s}
 
-\author{\uppercase{Thinuka Lehan}\authorrefmark{1}, \uppercase{Achala Aponsu}\authorrefmark{1}, and \uppercase{Maninda Edirisooriya}\authorrefmark{1}}
+\author{\uppercase{Thinuka Lehan}\authorrefmark{1}, \uppercase{Achala Aponso}\authorrefmark{1}, and \uppercase{Maninda Edirisooriya}\authorrefmark{1}}
 \address[1]{Informatics Institute of Technology (IIT), Colombo, Sri Lanka}
 \tfootnote{This research received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors.}
 
@@ -41,7 +41,7 @@ FRONT = r"""\documentclass{ieeeaccess}
 {T. Lehan \headeretal: DamageSAR-Bench: Building-Level Evaluation of Frozen Vision Foundation Models}
 {T. Lehan \headeretal: DamageSAR-Bench: Building-Level Evaluation of Frozen Vision Foundation Models}
 
-\corresp{Corresponding author: Thinuka Lehan (e-mail: thinukalehanfyp@gmail.com).}
+\corresp{Corresponding author: Thinuka Lehan (e-mail: thinuka.20221423@iit.ac.lk).}
 
 \begin{abstract}
 %(abstract)s
