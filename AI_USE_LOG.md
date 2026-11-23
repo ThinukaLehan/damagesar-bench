@@ -4,6 +4,10 @@ Every use of a generative-AI tool, what it produced, and how it was checked. AI 
 
 **Permission:** on 9 Nov 2026 the supervisor (Dr. Achala Aponsu) confirmed that using generative AI in this project is allowed, and encouraged, given the time available. Every use is logged below and disclosed in the README. On 9 Nov 2026, on the supervisor's advice, the author is listed as the sole author and AI is acknowledged as a tool (as IEEE asks for AI-generated content); the `Co-Authored-By: Claude` lines were removed from the first four commit messages and are no longer added. The code in those commits is unchanged. The formal declaration follows the module's required format.
 
+**Authorship (note added 23 Nov 2026):** the 9 Nov sentence above is about the code and its commits: the AI is a tool, never a co-author, and the software (`CITATION.cff`) is by Thinuka Lehan alone. The paper written from this project (`paper/`) has three human authors, Thinuka Lehan, Achala Aponso and Maninda Edirisooriya, as agreed with the supervisors on 22 Nov 2026; there too the AI is acknowledged as a tool, in the paper's Acknowledgment.
+
+**How to read this log (note added 23 Nov 2026):** each row records the state when that piece of work was done. "Built only; not run", "pending" and "to do" describe that moment, not today. Whether and when something was later run, and its result, is recorded in [`EXPERIMENT_LOG.md`](EXPERIMENT_LOG.md); the table *Run status of rows marked built, pending or to do* at the end of this file points to those entries. Rows are never edited after the fact.
+
 | Date | Tool | Purpose | Output | How verified |
 |---|---|---|---|---|
 | 2026-10-31 | Claude | Dataset audit script and run | Audit tables | Re-run in own pipeline on 3 Nov (class shares reproduced) |
@@ -52,3 +56,25 @@ Every use of a generative-AI tool, what it produced, and how it was checked. AI 
 | 2026-11-22 | Claude | Freeze preparation: plan status FROZEN, `freeze_date` 2026-11-22, k00 result recorded, plan PDF for the Zenodo deposit; r01 kept in the development phase after the freeze (PR #45) | `docs/preregistration.md`, `configs/events.yaml`, EXPERIMENT_LOG, r01 notebook | k00 result read from the user's pasted output; all tests pass with the freeze date set; DOI and the supervisor's agreement entered by the user |
 | 2026-11-22 | Claude | Paper v9: protocol text aligned with the frozen plan (Bonferroni 97.5%, five events, power 2.05 SD, supporting evidence, RQ1 model, event roles); preprints replaced by peer-reviewed sources or removed; new citations for methods already used; Data and Code Availability with plan, code and data DOIs; locked-test placeholders | `paper/jstars/main.tex`, `refs.bib`, README | Every new reference checked against its publisher or proceedings page (venue, pages, DOI); numbers changed only where the frozen plan changed them (word-level diff checked); builds to 13 pages, 49 references |
 | 2026-11-22 | Claude | Plan prepared for the freeze: open items closed with the recommended decisions (pending the supervisor's written confirmation); Ukraine to the secondary set; development-phase results listed | `docs/preregistration.md`, `configs/events.yaml`, `tests/test_splits_cli.py` | Gate 1 and p04 lines to be filled when those runs are recorded |
+| 2026-11-23 | Claude | Fill tool fix: reads `bench_run/run_manifest.json` (it looked for `manifest.json`, so the run date and commit were missing) and stops unless the run is a locked run on the confirmatory events | `paper/tools/fill_locked.py`, `tests/test_fill_locked.py` | Tests pass, including a new one that rejects a development run; run on the k01 folder: RQ1 interval re-derived from the per-event gains and verdict re-derived from the frozen decision table before anything was written |
+| 2026-11-23 | Claude | k01 results into the paper (Section VI-I, Table XIV, abstract, introduction, discussion, conclusion) and the two k01 rows of EXPERIMENT_LOG | `paper/jstars/main.tex`, `paper/ieee-access/main.tex` (generated), `paper/locked_results/`, EXPERIMENT_LOG | Every number checked by script against the k01 run files; both versions built and read |
+| 2026-11-23 | Claude | Author details in the paper: Maninda Edirisooriya's biography and photo (text and photo as supplied by him), Thinuka Lehan's biography and photo (details supplied by him), the authors' IIT e-mail addresses, second author's surname spelled Aponso (as in his IIT e-mail, to be confirmed) | `paper/jstars/main.tex`, `paper/jstars/photos/`, `paper/ieee-access/` | Biography facts come from the authors only; built and checked in both versions |
+| 2026-11-23 | Claude | Paper review rounds on v10: wording made exact where it went beyond the record (reproduction and availability claims, DINOv2 patch size, interval level of the locked analysis, number of encoders in the locked test, memory of the locked run, hazard sentence and others) | `paper/jstars/main.tex`, `paper/ieee-access/main.tex` | Each change checked against the code, run files or experiment log; word-level diff, both versions rebuilt and the changed pages read; no result changed |
+| 2026-11-23 | Claude | README and reproduction guide brought up to date (event roles 5/5/4, freeze on 22 Nov with DOI, implemented and pending components, locked result, paper); this log: authorship note, how-to-read note, run-status table | `README.md`, `docs/REPRODUCE.md`, `AI_USE_LOG.md` | Each status checked against the code, CLI and experiment log; no code or paper change |
+
+## Run status of rows marked built, pending or to do
+
+Added 23 Nov 2026. Where each such row was later run (see `EXPERIMENT_LOG.md`), or that it still has not been.
+
+| Row (date: work) | Said then | Status on 23 Nov 2026 |
+|---|---|---|
+| 2026-11-09: repo skeleton, `bench validate` on real BRIGHT | to do | Done: c01 data validation, 14 Nov 2026 |
+| 2026-11-09: building-table loader | real-data check pending (P01) | Done: p01 building table, 14 Nov 2026 |
+| 2026-11-09: C2 scene-metadata matcher, c06 | real run pending | Run: c06 first run, 10 Nov 2026 (results provisional, as logged) |
+| 2026-11-22: masked-building control, p06 | built only; not run | **Still not run** |
+| 2026-11-22: freeze check and k01 locked-test notebook | built only; not run | Run: k01, 22 Nov 2026 (UTC); first run stopped for lack of memory before any result, rerun gave the results |
+| 2026-11-22: RQ1 encoder in the freeze record | built only; not run | Used by k01, 22 Nov 2026 |
+| 2026-11-22: confound controls, p05 | built only; not run | Run: p05, 22 Nov 2026 |
+| 2026-11-22: texture + random-forest reference, b02 | built only; not run | Run: b02, 22 Nov 2026 |
+| 2026-11-22: r01 steps 5d–5g (p04, g01, b02, p05) | r01 step not yet run | **Still not run**: the full r01 rerun is still to be done |
+| 2026-11-22: plan prepared for the freeze | pending the supervisor's written confirmation | Decisions agreed with the supervisor by phone on 22 Nov 2026; recorded in `docs/FREEZE.md` |
