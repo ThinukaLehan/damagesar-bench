@@ -67,7 +67,7 @@ def load(run: Path) -> dict:
     return {
         "comps": pd.read_csv(_need(bench / "comparisons.csv")),
         "metrics": pd.read_csv(_need(bench / "event_metrics.csv")),
-        "manifest": json.loads(_need(bench / "manifest.json").read_text()) if (bench / "manifest.json").exists() else {},
+        "manifest": json.loads(_need(bench / "run_manifest.json").read_text()),
         "per_event": pd.read_csv(_need(run / "rq1_per_event.csv")),
         "supporting": json.loads(_need(run / "rq1_supporting.json").read_text()),
         "c3": pd.read_csv(_need(run / "c3_confirmatory.csv")),
@@ -82,6 +82,10 @@ def check_and_derive(d: dict) -> dict:
         raise FillError("exactly one confirmatory comparison (RQ1) expected; Gate 1 did not pass, so no RQ2")
     if not (d["comps"]["level"].round(6) == LEVEL).all():
         raise FillError(f"every comparison must be at the frozen level {LEVEL}")
+    man = d["manifest"]
+    if man.get("phase") != "locked" or man.get("event_set") not in ("auto", "confirmatory"):
+        raise FillError(f"run_manifest.json: expected a locked run on the confirmatory events, got phase "
+                        f"{man.get('phase')!r}, event set {man.get('event_set')!r}")
     r = c.loc[RQ1]
     events = str(r["events"]).split("+")
     if sorted(events) != sorted(CONFIRMATORY):
@@ -123,8 +127,8 @@ def write(d: dict, x: dict, out: Path) -> None:
 
     iv, sup, r = x["interval"], x["supporting"], x["rq1"]
     vals = {
-        "LockedDate": d["manifest"].get("date", "[date]"),
-        "LockedCommit": str(d["manifest"].get("git_commit", "[commit]"))[:7],
+        "LockedDate": d["manifest"]["date"],
+        "LockedCommit": str(d["manifest"].get("git_commit") or "unknown")[:7],
         "RQoneEst": _f(iv.estimate, True), "RQoneLow": _f(iv.lower, True), "RQoneHigh": _f(iv.upper, True),
         "RQoneSD": f"{x['sd']:.3f}", "RQoneVerdict": x["verdict"].meaning,
         "RQoneSignFlipTwo": f"{r['sign_flip_p']:.3f}",

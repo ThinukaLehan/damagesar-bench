@@ -40,6 +40,7 @@ def test_fill_writes_checked_outputs(run_dir, tmp_path):
     vals = (tmp_path / "out" / "values.tex").read_text()
     for k in ("RQoneEst", "RQoneLow", "RQoneHigh", "RQoneVerdict", "RQoneSatBetter", "RQoneSignFlipOne"):
         assert f"\\newcommand{{\\{k}}}" in vals
+    assert "[date]" not in vals and "\\newcommand{\\LockedDate}{" + date.today().isoformat() + "}" in vals
     table = (tmp_path / "out" / "table_locked.tex").read_text()
     assert "Haiti" in table and "DINOv3 ViT-L (satellite) &" in table and "Image-free" in table
     md = (tmp_path / "out" / "locked_results.md").read_text()
@@ -70,3 +71,14 @@ def test_fill_stops_on_wrong_level(run_dir, tmp_path):
     c.to_csv(p, index=False)
     assert fill.main([str(bad), "--out", str(tmp_path / "o2")]) == 1
     assert json  # keep import used
+
+
+def test_fill_stops_on_development_run(run_dir, tmp_path):
+    import shutil
+    bad = tmp_path / "bad"
+    shutil.copytree(run_dir, bad)
+    p = bad / "bench_run" / "run_manifest.json"
+    m = json.loads(p.read_text())
+    m["phase"] = "development"
+    p.write_text(json.dumps(m))
+    assert fill.main([str(bad), "--out", str(tmp_path / "out")]) == 1
