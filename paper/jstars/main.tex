@@ -41,7 +41,7 @@ Why models fail on unseen events is not known, and current evaluations cannot te
 \item \emph{Evaluation.} The test measures the wrong thing: metrics are pixel- or tile-level, and building outlines drawn on optical images sit meters away from where the side-looking radar records the building. Models may also exploit context rather than the building itself, a form of shortcut learning~\cite{geirhos2020shortcut} that a tile-level test cannot separate from damage recognition~\cite{shibli2026shortcut}.
 \item \emph{Calibration.} Damage prevalence varies from 3\% to 71\% of buildings across the six BRIGHT events whose building labels are open for development, the five development events and Marshall (Section~\ref{sec:data}), so a classifier tuned on one mix of events is miscalibrated on the next.
 \end{enumerate}
-Separating these requires a test bed that is building-level, SAR-only, held out by event, protected against leakage and shortcuts, and statistically honest about how little five test events can show. To our knowledge, no released tool does all of this.
+Separating these requires a test bed that is building-level, SAR-only, held out by event, protected against leakage and shortcuts, and explicit about how little five test events can show. To our knowledge, no released tool does all of this.
 
 We make three contributions:
 \begin{itemize}
@@ -125,9 +125,9 @@ Secondary (4) & Marshall (wildfire); Mexico, Myanmar (storm); Ukraine (conflict)
 \end{table}
 
 \subsection{Building Table and No-Data Rule}
-One unit is one instance polygon, labeled damaged-or-destroyed (positive) or intact by its class in the instance file. Tiles with at least 95\% SAR no-data (value 0) are excluded (20 tiles), and so are buildings whose footprint is at least half no-data. The 11 labeled events hold 244,976 buildings; 242,842 remain (828 excluded for building no-data, 753 for tile no-data, 553 empty footprints). For every unlocked event the instance class matches the majority label-raster class inside the polygon for 99.9--100\% of buildings. One property of the labels matters to anyone reusing them: the \texttt{area} field in BRIGHT's instance files is the bounding-box area (width $\times$ height), not the polygon area, for every building; our table stores both.
+One unit is one instance polygon, labeled damaged-or-destroyed (positive) or intact by its class in the instance file. Tiles with at least 95\% SAR no-data (value 0) are excluded (20 tiles), and so are buildings whose footprint is at least half no-data. The 11 labeled events hold 244,976 buildings; 242,842 remain (828 excluded for building no-data, 753 for tile no-data, 553 empty footprints). For every development and secondary event the instance class matches the majority label-raster class inside the polygon for 99.9--100\% of buildings. One property of the labels matters to anyone reusing them: the \texttt{area} field in BRIGHT's instance files is the bounding-box area (width $\times$ height), not the polygon area, for every building; our table stores both.
 
-Prevalence differs widely: among the development and secondary events, damaged or destroyed buildings range from 3.1\% (Beirut) to 71.1\% (Hawaii) of an event's kept buildings. The positive counts are Beirut 653 (25 destroyed), Libya 3,346, Congo 1,505, Hawaii 2,511, La Palma 5,596 and Marshall 696. Confirmatory class counts were seen in the 31 October audit and are not reported here.
+Prevalence differs widely: among the development and secondary events, damaged or destroyed buildings range from 3.1\% (Beirut) to 71.1\% (Hawaii) of an event's kept buildings. The positive counts are Beirut 653 (25 destroyed), Libya 3,346, Congo 1,505, Hawaii 2,511, La Palma 5,596 and Marshall 696. Confirmatory class counts were seen in the 31 October audit and were not used before the locked test (Section~\ref{sec:res-locked}).
 
 % ---------------------------------------------------------------------------------------------------------------
 \section{Method}
@@ -223,7 +223,7 @@ Gate~1 (development events only) decides whether image-matched pooling proceeds 
 An audit on 31 October 2026 looked at confirmatory events in four limited ways: class and instance counts, footprint-to-SAR offsets, raw-signal AUROC and a building-count AUROC. No encoder features were computed and no setting was chosen from them. The offsets motivated image-matched pooling, which is therefore designed and gated on development events only. This disclosure is part of the registered plan, which was frozen on 22 November 2026 and deposited with a time-stamped DOI~\cite{lehan2026prereg}, so that the record does not rest on a git tag alone. The locked analysis was rehearsed beforehand on the development events standing in for the confirmatory ones, and reproduced the recorded development results.
 
 \subsection{Implementation and Compute}
-The toolkit is written in Python (PyTorch 2.14, Transformers 5.22, scikit-learn 1.6, rasterio 1.5) and has more than 230 unit tests. All runs used one NVIDIA T4 graphics processing unit (GPU) on Google Colab with 12.7~GB of system memory. DINOv3 ViT-B/16 encodes a 1024-pixel tile in half precision at about 10.5 tiles/s with 0.36~GB of GPU memory; with file reading and pooling, the 1,026 development and Marshall tiles took 501--506~s for DINOv3 (two separate runs) and 783~s for the ImageNet ViT-B at native resolution, and 738~s for DINOv3 at 0.3~m. In single precision, each DINOv3 ViT-L took about 2,075~s (0.49 tiles/s).
+The toolkit is written in Python (PyTorch 2.14, Transformers 5.22, scikit-learn 1.6, rasterio 1.5) and has more than 230 unit tests. All runs used one NVIDIA T4 graphics processing unit (GPU) on Google Colab, with 12.7~GB of system memory except the locked test, which needed 51~GB (Section~\ref{sec:res-locked}). DINOv3 ViT-B/16 encodes a 1024-pixel tile in half precision at about 10.5 tiles/s with 0.36~GB of GPU memory; with file reading and pooling, the 1,026 development and Marshall tiles took 501--506~s for DINOv3 (two separate runs) and 783~s for the ImageNet ViT-B at native resolution, and 738~s for DINOv3 at 0.3~m. In single precision, each DINOv3 ViT-L took about 2,075~s (0.49 tiles/s).
 
 % ---------------------------------------------------------------------------------------------------------------
 \section{Results}
@@ -377,7 +377,7 @@ Dilated vs.\ outline, ImageNet & $+0.009$ & [$-0.018$, $+0.037$] & 0.022 & 0.44 
 \end{tabular}}
 \end{table}
 
-Three findings stand out. First, on these five events the newer self-supervised DINOv3 ViT-B (web) is not better than the supervised ImageNet ViT-B: the ImageNet ViT-B has a higher mean AUROC (0.663 against 0.620; difference $-0.043$, interval $-0.246$ to $+0.159$) and is ahead on three events (Hawaii by 0.21, La Palma by 0.15, Libya by 0.10), while DINOv3 is ahead in Beirut (0.18) and Congo (0.07). The encoder that leads changes with the event, so the confirmatory RQ1 comparison is unlikely to be settled by a uniform gain.
+Three findings stand out. First, on these five events the newer self-supervised DINOv3 ViT-B (web) is not better than the supervised ImageNet ViT-B: the ImageNet ViT-B has a higher mean AUROC (0.663 against 0.620; difference $-0.043$, interval $-0.246$ to $+0.159$) and is ahead on three events (Hawaii by 0.21, La Palma by 0.15, Libya by 0.10), while DINOv3 is ahead in Beirut (0.18) and Congo (0.07). The encoder that leads changes with the event, so the first-planned comparison (DINOv3 ViT-B vs.\ ImageNet) is unlikely to be settled by a uniform gain.
 
 Second, for DINOv3 we detect no difference between pooling the building and pooling only its surroundings (gain $+0.002$, 95\% interval $-0.051$ to $+0.054$). Pooled over the 10~m ring, which never touches a building token, DINOv3 scores as well as outline pooling in every event but La Palma (mean 0.618 against 0.620), and in Congo it matches the outline score (0.853 against 0.849). For this encoder, Congo's high AUROC therefore cannot be attributed to the buildings' own appearance in SAR; the location of damaged buildings, inside the lava-affected area, explains it equally well. Its small buildings (Table~\ref{tab:tokens}) already suggested this. With ImageNet features the outline is ahead of the ring by 0.06--0.08 in Beirut, Congo and Libya, and behind it in Hawaii and La Palma, so the size of this effect depends on the encoder.
 
@@ -472,7 +472,7 @@ Table~\ref{tab:gate1} gives the result for DINOv3 ViT-B at native resolution. Th
 
 \begin{table}[t]
 \centering
-\caption{Gate~1 (DINOv3 ViT-B, native). Moved: tiles with a real offset, out of all tiles. Gain: AUROC of image-matched minus outline pooling, computed from unrounded AUROCs (so it can differ by 0.001 from the difference of the rounded values). Null: range of the gains of the ten random-direction shifts of the same distance.}
+\caption{Gate~1 (DINOv3 ViT-B, native). Moved: tiles with a real offset, out of all tiles. Median: shift of the moved tiles (Table~\ref{tab:offsets} gives the median over all tiles with a clear peak). Gain: AUROC of image-matched minus outline pooling, computed from unrounded AUROCs (so it can differ by 0.001 from the difference of the rounded values). Null: range of the gains of the ten random-direction shifts of the same distance.}
 \label{tab:gate1}
 \footnotesize
 \setlength{\tabcolsep}{2.5pt}
@@ -520,7 +520,7 @@ ImageNet & Libya & 0.350 & 0.145 & 0.000 & 0.000 & 0.246 & estimate 0.000 \\
 \end{tabular}
 \end{table}
 
-With probes this weak, label-free prevalence estimation is not usable: the source carries too little separation for either estimator, and EM is driven to the boundary in most events. The abstain rule refuses eight of ten cases, but it has a blind spot when both estimators fail in the same direction. Estimating a new event's damage rate without labels therefore needs a better-separating model first; the satellite ViT-L separates better, but its scores shift between events even more (Table~\ref{tab:threshold}), and the plan reports its recalibration on the confirmatory events as exploratory (Section~\ref{sec:res-locked}) rather than tuning the method after the gate.
+With probes this weak, label-free prevalence estimation is not usable: the source carries too little separation for either estimator, and EM is driven to the boundary in most events. The abstain rule refuses eight of ten cases, but it has a blind spot when both estimators fail in the same direction. Estimating a new event's damage rate without labels therefore needs a better-separating model first; the satellite ViT-L ranks better (higher AUROC), but its scores shift between events even more (Table~\ref{tab:threshold}), and the plan reports its recalibration on the confirmatory events as exploratory (Section~\ref{sec:res-locked}) rather than tuning the method after the gate.
 
 \subsection{Locked Confirmatory Test}
 \label{sec:res-locked}
